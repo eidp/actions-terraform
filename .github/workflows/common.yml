@@ -1,0 +1,13 @@
+name: 'Common PR workflow'
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  pull-requests: write
+
+jobs:
+  common:
+    uses: eidp/actions-common/.github/workflows/common.yml@main
