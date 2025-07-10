@@ -1,0 +1,124 @@
+name: Terraform Plan
+
+on:
+  workflow_call:
+    inputs:
+      directory:
+        description: >
+          Path to the directory containing Terraform configuration.
+          Defaults to ./terraform.
+        required: false
+        type: string
+        default: "./terraform"
+
+      terraform_version:
+        description: >
+          The version of Terraform to install and use.
+        required: false
+        type: string
+        default: "1.12.2"
+
+      extra_plan_args:
+        description: >
+          Extra arguments to pass to the 'terraform plan' command. 
+          Useful for (dynamically) injecting variable files or flags.
+        required: false
+        type: string
+        default: ""
+
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: >
+          AWS access key for authenticating with Terraform providers.
+        required: true
+
+      AWS_SECRET_ACCESS_KEY:
+        description: >
+          AWS secret key for authenticating with Terraform providers.
+        required: true
+
+      GITHUB_APP_PEM_FILE:
+        description: >
+          GitHub App private key (PEM format) for generating the token used to comment on PRs.
+        required: true
+
+      GITHUB_APP_ID:
+        description: >
+          GitHub App ID used with the create-github-app-token action.
+        required: true
+
+      GITHUB_APP_INSTALLATION_ID:
+        description: >
+          GitHub App Installation ID used with the create-github-app-token action.
+        required: true
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GITHUB_APP_ID: ${{ secrets.GITHUB_APP_ID }}
+  GITHUB_APP_INSTALLATION_ID: ${{ secrets.GITHUB_APP_INSTALLATION_ID }}
+  GITHUB_APP_PEM_FILE: ${{ secrets.GITHUB_APP_PEM_FILE }}
+
+jobs:
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.directory }}
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -recursive -check
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -lockfile=readonly -input=false
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -input=false -no-color ${{ inputs.extra_plan_args }} -out=tfplan
+          terraform show -no-color tfplan
+
+      - name: Generate App token
+        id: generate-app-token
+        uses: actions/create-github-app-token@v2
+        env:
+          GITHUB_APP_ID: ${{ secrets.GH_APP_ID }}
+          GITHUB_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PEM_FILE }}
+
+      - name: Comment on PR
+        if: always()
+        uses: mshick/add-pr-comment@v2
+        with:
+          repo-token: ${{ steps.generate-app-token.outputs.token }}
+          message: |
+            #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
+            #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
+            #### 🤖 **Terraform Validation:**  `${{ steps.validate.outcome }}`
+            #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
+          message-failure: |
+            #### ❌ Terraform Plan Failed
+            Please check the logs above for details.
