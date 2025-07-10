@@ -46,7 +46,7 @@ on:
 
 jobs:
   plan:
-    uses: eidp/actions/.github/workflows/terraform-apply.yml@0
+    uses: eidp/actions-terraform/.github/workflows/terraform-apply.yml@0
     with:
       directory: ./terraform
       terraform_version: '1.12.2'
@@ -106,7 +106,7 @@ on:
 
 jobs:
   plan:
-    uses: eidp/actions/.github/workflows/terraform-plan.yml@main
+    uses: eidp/actions-terraform/.github/workflows/terraform-plan.yml@main
     with:
       directory: ./terraform
       terraform_version: '1.12.2'
