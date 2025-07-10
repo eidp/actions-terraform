@@ -104,6 +104,7 @@ jobs:
           private-key: ${{ secrets.GITHUB_APP_PEM_FILE }}
 
       - name: Comment on PR
+        id: add-pr-comment
         if: always()
         uses: mshick/add-pr-comment@v2
         with:
@@ -113,6 +114,32 @@ jobs:
             #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
             #### 🤖 **Terraform Validation:**  `${{ steps.validate.outcome }}`
             #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
+  
+            <details>
+              <summary><b>🔍 Show Terraform Plan</b></summary>
+  
+              <blockquote>
+  
+            ```tf
+            ${{ steps.plan.outputs.stdout }}
+            ```
+  
+              </blockquote>
+            </details>
           message-failure: |
-            #### ❌ Terraform Plan Failed
-            Please check the logs above for details.
+            #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
+            #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
+            #### 🤖 **Terraform Validation:** `${{ steps.validate.outcome }}`
+            #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
+  
+            <details>
+              <summary><b>🔍 Show Plan Error</b></summary>
+  
+              <blockquote>
+  
+            ```tf
+            ${{ steps.plan.outputs.stderr }}
+            ```
+  
+              </blockquote>
+            </details>
