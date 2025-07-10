@@ -63,9 +63,6 @@ jobs:
   plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
 
     defaults:
       run:
