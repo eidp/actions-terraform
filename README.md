@@ -1,4 +1,4 @@
-# Terraform Actions
+# Terraform Actions and Workflows
 
 This repository contains GitHub Actions and shared workflows for managing Terraform resources.
 

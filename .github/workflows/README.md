@@ -14,27 +14,42 @@ This workflow runs the following terraform commands (in order):
 2. `terraform plan` - Creates an execution plan, showing what actions Terraform will take to change the infrastructure.
 3. `terraform apply` - Applies the changes required to reach the desired state of the configuration.
 
+### 🔑 GitHub authentication
+
+GitHub authentication is handled using a [GitHub App](https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps/about-creating-github-apps), which allows the workflow to comment on pull requests. 
+In case Terraform manages GitHub resources, the GitHub App is also used to authenticate with the GitHub API.
+
+The minimal permissions for the GitHub App are:
+- `Read and write` access to `Pull requests`
+
 <!-- BEGIN WORKFLOW INPUT DOCS: Terraform Apply -->
 
 ### 🔧 Inputs
 
-|        Name       |                                                                 Description                                                                |Required| Type |       Default      |
-|-------------------|--------------------------------------------------------------------------------------------------------------------------------------------|--------|------|--------------------|
-|    `directory`    |                             Path to the directory containing Terraform configuration. Defaults to ./terraform.                             |   No   |string|    `./terraform`   |
-|`terraform_version`|                                                The version of Terraform to install and use.                                                |   No   |string|      `1.12.2`      |
-| `extra_init_args` |                                          Extra arguments to pass to the 'terraform init' command.                                          |   No   |string|`-lockfile=readonly`|
-|    `extra_args`   |Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands.  Useful for (dynamically) injecting variable files or flags.|   No   |string|         ``         |
-|   `environment`   |           The environment to use for the Terraform apply step. This can be used to set up extra approval before applying changes.          |   No   |string|      `github`      |
+|Name                |Description                                                                                                                                  |Required|Type   |Default              |
+|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
+|`directory`         |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                           |No      |string |`./terraform`        |
+|`terraform_version` |The version of Terraform to install and use.                                                                                                 |No      |string |`1.12.2`             |
+|`extra_init_args`   |Extra arguments to pass to the 'terraform init' command.                                                                                     |No      |string |`-lockfile=readonly` |
+|`extra_args`        |Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands.  Useful for (dynamically) injecting variable files or flags. |No      |string |``                   |
+|`environment`       |The environment to use for the Terraform apply step. This can be used to set up extra approval before applying changes.                      |No      |string |`github`             |
 
 ### 🔐 Secrets
 
-|            Name            |                                                     Description                                                    |Required|
-|----------------------------|--------------------------------------------------------------------------------------------------------------------|--------|
-|     `AWS_ACCESS_KEY_ID`    |                             AWS access key for authenticating with Terraform providers.                            |   Yes  |
-|   `AWS_SECRET_ACCESS_KEY`  |                             AWS secret key for authenticating with Terraform providers.                            |   Yes  |
-|       `GITHUB_APP_ID`      |           GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.           |   Yes  |
-|    `GITHUB_APP_PEM_FILE`   |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.|   Yes  |
-|`GITHUB_APP_INSTALLATION_ID`|     GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.    |   Yes  |
+|Name                         |Description                                                                                                          |Required|
+|-----------------------------|---------------------------------------------------------------------------------------------------------------------|--------|
+|`AWS_ACCESS_KEY_ID`          |AWS access key for authenticating with Terraform providers.                                                          |Yes     |
+|`AWS_SECRET_ACCESS_KEY`      |AWS secret key for authenticating with Terraform providers.                                                          |Yes     |
+|`GITHUB_APP_ID`              |GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                       |Yes     |
+|`GITHUB_APP_PEM_FILE`        |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs. |Yes     |
+|`GITHUB_APP_INSTALLATION_ID` |GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.          |Yes     |
+
+### 📤 Outputs
+
+|Name            |Description                                                                                                |
+|----------------|-----------------------------------------------------------------------------------------------------------|
+|`apply_outcome` |The status of the Terraform apply step, which can be used to determine if the apply was successful or not. |
+|`apply_output`  |The output of the Terraform apply step.                                                                    |
 
 <!-- END WORKFLOW INPUT DOCS -->
 
@@ -50,7 +65,7 @@ on:
 
 jobs:
   plan:
-    uses: eidp/actions-terraform/.github/workflows/terraform-apply.yml@0
+    uses: eidp/actions-terraform/.github/workflows/terraform-apply.yml@v0
     with:
       directory: ./terraform
       terraform_version: '1.12.2'
@@ -79,22 +94,29 @@ This workflow runs the following terraform commands (in order):
 
 ### 🔧 Inputs
 
-|        Name       |                                                     Description                                                     |Required| Type |       Default      |
-|-------------------|---------------------------------------------------------------------------------------------------------------------|--------|------|--------------------|
-|    `directory`    |                  Path to the directory containing Terraform configuration. Defaults to ./terraform.                 |   No   |string|    `./terraform`   |
-|`terraform_version`|                                     The version of Terraform to install and use.                                    |   No   |string|      `1.12.2`      |
-| `extra_init_args` |                               Extra arguments to pass to the 'terraform init' command.                              |   No   |string|`-lockfile=readonly`|
-|    `extra_args`   |Extra arguments to pass to the 'terraform plan' command.  Useful for (dynamically) injecting variable files or flags.|   No   |string|         ``         |
+|Name                |Description                                                                                                           |Required|Type   |Default              |
+|--------------------|----------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
+|`directory`         |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                    |No      |string |`./terraform`        |
+|`terraform_version` |The version of Terraform to install and use.                                                                          |No      |string |`1.12.2`             |
+|`extra_init_args`   |Extra arguments to pass to the 'terraform init' command.                                                              |No      |string |`-lockfile=readonly` |
+|`extra_args`        |Extra arguments to pass to the 'terraform plan' command.  Useful for (dynamically) injecting variable files or flags. |No      |string |``                   |
 
 ### 🔐 Secrets
 
-|            Name            |                                                     Description                                                    |Required|
-|----------------------------|--------------------------------------------------------------------------------------------------------------------|--------|
-|     `AWS_ACCESS_KEY_ID`    |                             AWS access key for authenticating with Terraform providers.                            |   Yes  |
-|   `AWS_SECRET_ACCESS_KEY`  |                             AWS secret key for authenticating with Terraform providers.                            |   Yes  |
-|       `GITHUB_APP_ID`      |           GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.           |   Yes  |
-|    `GITHUB_APP_PEM_FILE`   |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.|   Yes  |
-|`GITHUB_APP_INSTALLATION_ID`|     GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.    |   Yes  |
+|Name                         |Description                                                                                                          |Required|
+|-----------------------------|---------------------------------------------------------------------------------------------------------------------|--------|
+|`AWS_ACCESS_KEY_ID`          |AWS access key for authenticating with Terraform providers.                                                          |Yes     |
+|`AWS_SECRET_ACCESS_KEY`      |AWS secret key for authenticating with Terraform providers.                                                          |Yes     |
+|`GITHUB_APP_ID`              |GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                       |Yes     |
+|`GITHUB_APP_PEM_FILE`        |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs. |Yes     |
+|`GITHUB_APP_INSTALLATION_ID` |GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.          |Yes     |
+
+### 📤 Outputs
+
+|Name           |Description                                                                                               |
+|---------------|----------------------------------------------------------------------------------------------------------|
+|`plan_outcome` |The outcome of the Terraform plan step, which can be used to determine if the plan was successful or not. |
+|`plan_output`  |The output of the Terraform plan command.                                                                 |
 
 <!-- END WORKFLOW INPUT DOCS -->
 
@@ -110,7 +132,7 @@ on:
 
 jobs:
   plan:
-    uses: eidp/actions-terraform/.github/workflows/terraform-plan.yml@main
+    uses: eidp/actions-terraform/.github/workflows/terraform-plan.yml@v0
     with:
       directory: ./terraform
       terraform_version: '1.12.2'
