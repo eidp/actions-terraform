@@ -99,12 +99,9 @@ jobs:
       - name: Generate App token
         id: generate-app-token
         uses: actions/create-github-app-token@v2
-        env:
-          GITHUB_APP_ID: ${{ secrets.GH_APP_ID }}
-          GITHUB_APP_INSTALLATION_ID: ${{ secrets.GH_APP_INSTALLATION_ID }}
         with:
-          app-id: ${{ secrets.GH_APP_ID }}
-          private-key: ${{ secrets.GH_APP_PEM_FILE }}
+          app-id: ${{ secrets.GITHUB_APP_ID }}
+          private-key: ${{ secrets.GITHUB_APP_PEM_FILE }}
 
       - name: Comment on PR
         if: always()
