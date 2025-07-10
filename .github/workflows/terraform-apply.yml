@@ -66,6 +66,15 @@ on:
         description: >
           GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.
         required: true
+    outputs:
+      apply_outcome:
+        description: |
+          The status of the Terraform apply step, which can be used to determine if the apply was successful or not.
+        value: ${{ jobs.apply.outputs.apply_outcome }}
+      apply_output:
+        description: |
+          The output of the Terraform apply step.
+        value: ${{ jobs.apply.outputs.apply_output }}
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -110,6 +119,9 @@ jobs:
     needs: [plan]
     name: "Terraform Apply"
     runs-on: ubuntu-latest
+    outputs:
+      apply_outcome: ${{ steps.apply.outcome }}
+      apply_output: ${{ steps.apply.outputs.stdout }}
     # TODO enable once we have an enterprise account
     #    environment: ${{ inputs.environment }}
     #    concurrency: ${{ inputs.environment }}

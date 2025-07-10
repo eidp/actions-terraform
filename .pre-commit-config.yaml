@@ -3,7 +3,8 @@ repos:
     hooks:
     - id: generate-workflow-docs
       name: Update shared workflow input docs
-      entry: uv run scripts/generate-workflow-docs.py
+      entry: uv run ../actions-common/scripts/generate-workflow-docs.py
+      verbose: true
       language: system
       files: '^\.github/workflows/.*\.ya?ml$'
       pass_filenames: false
