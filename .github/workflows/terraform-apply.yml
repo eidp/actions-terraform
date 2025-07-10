@@ -18,6 +18,13 @@ on:
         type: string
         default: "1.12.2"
 
+      extra_init_args:
+        description: >
+          Extra arguments to pass to the 'terraform init' command.
+        required: false
+        type: string
+        default: "-lockfile=readonly"
+
       extra_args:
         description: >
           Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands. 
@@ -87,7 +94,7 @@ jobs:
 
     - name: Terraform Init
       id: init
-      run: terraform init -lockfile=readonly -input=false
+      run: terraform init ${{ inputs.extra_init_args }} -input=false
 
     - name: Terraform Plan
       id: plan
@@ -103,9 +110,9 @@ jobs:
     needs: [plan]
     name: "Terraform Apply"
     runs-on: ubuntu-latest
-# TODO enable once we have an enterprise account
-#    environment: ${{ inputs.environment }}
-#    concurrency: ${{ inputs.environment }}
+    # TODO enable once we have an enterprise account
+    #    environment: ${{ inputs.environment }}
+    #    concurrency: ${{ inputs.environment }}
 
     defaults:
       run:

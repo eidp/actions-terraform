@@ -18,6 +18,13 @@ on:
         type: string
         default: "1.12.2"
 
+      extra_init_args:
+        description: >
+          Extra arguments to pass to the 'terraform init' command.
+        required: false
+        type: string
+        default: "-lockfile=readonly"
+
       extra_args:
         description: >
           Extra arguments to pass to the 'terraform plan' command. 
@@ -70,76 +77,76 @@ jobs:
         working-directory: ${{ inputs.directory }}
 
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
+    - name: Checkout Repo
+      uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ inputs.terraform_version }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ inputs.terraform_version }}
 
-      - name: Terraform Format
-        id: fmt
-        run: terraform fmt -recursive -check
+    - name: Terraform Init
+      id: init
+      run: terraform init ${{ inputs.extra_init_args }} -input=false
 
-      - name: Terraform Init
-        id: init
-        run: terraform init -lockfile=readonly -input=false
+    - name: Terraform Format
+      id: fmt
+      run: terraform fmt -recursive -check
 
-      - name: Terraform Validate
-        id: validate
-        run: terraform validate -no-color
+    - name: Terraform Validate
+      id: validate
+      run: terraform validate -no-color
 
-      - name: Terraform Plan
-        id: plan
-        run: |
-          terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan
-          terraform show -no-color tfplan
+    - name: Terraform Plan
+      id: plan
+      run: |
+        terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan
+        terraform show -no-color tfplan
 
-      - name: Generate App token
-        id: generate-app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.GITHUB_APP_ID }}
-          private-key: ${{ secrets.GITHUB_APP_PEM_FILE }}
+    - name: Generate App token
+      id: generate-app-token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ secrets.GITHUB_APP_ID }}
+        private-key: ${{ secrets.GITHUB_APP_PEM_FILE }}
 
-      - name: Comment on PR
-        id: add-pr-comment
-        if: always()
-        uses: mshick/add-pr-comment@v2
-        with:
-          repo-token: ${{ steps.generate-app-token.outputs.token }}
-          message: |
-            #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
-            #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
-            #### 🤖 **Terraform Validation:**  `${{ steps.validate.outcome }}`
-            #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
-  
-            <details>
-              <summary><b>🔍 Show Terraform Plan</b></summary>
-  
-              <blockquote>
-  
-            ```tf
-            ${{ steps.plan.outputs.stdout }}
-            ```
-  
-              </blockquote>
-            </details>
-          message-failure: |
-            #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
-            #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
-            #### 🤖 **Terraform Validation:** `${{ steps.validate.outcome }}`
-            #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
-  
-            <details>
-              <summary><b>🔍 Show Plan Error</b></summary>
-  
-              <blockquote>
-  
-            ```tf
-            ${{ steps.plan.outputs.stderr }}
-            ```
-  
-              </blockquote>
-            </details>
+    - name: Comment on PR
+      id: add-pr-comment
+      if: always()
+      uses: mshick/add-pr-comment@v2
+      with:
+        repo-token: ${{ steps.generate-app-token.outputs.token }}
+        message: |
+          #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
+          #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
+          #### 🤖 **Terraform Validation:**  `${{ steps.validate.outcome }}`
+          #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
+
+          <details>
+            <summary><b>🔍 Show Terraform Plan</b></summary>
+
+            <blockquote>
+
+          ```tf
+          ${{ steps.plan.outputs.stdout }}
+          ```
+
+            </blockquote>
+          </details>
+        message-failure: |
+          #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
+          #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
+          #### 🤖 **Terraform Validation:** `${{ steps.validate.outcome }}`
+          #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
+
+          <details>
+            <summary><b>🔍 Show Plan Error</b></summary>
+
+            <blockquote>
+
+          ```tf
+          ${{ steps.plan.outputs.stderr }}
+          ```
+
+            </blockquote>
+          </details>
