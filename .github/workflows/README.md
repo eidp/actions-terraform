@@ -1,3 +1,7 @@
+# Terraform Workflows
+
+This repository exposes reusable GitHub workflows for managing Terraform resources.
+
 ## Terraform Apply (Workflow)
 
 This workflow can be used to apply Terraform changes to your infrastructure. 
