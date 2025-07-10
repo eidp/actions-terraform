@@ -1,4 +1,4 @@
-name: Terraform Plan Test
+name: Terraform Apply Test
 
 on:
   push:
