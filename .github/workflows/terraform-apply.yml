@@ -120,7 +120,7 @@ jobs:
     name: "Terraform Apply"
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    concurrency: ${{ inputs.environment }}
+    concurrency: ${{ inputs.environment }}-apply
     outputs:
       apply_outcome: ${{ steps.apply.outcome }}
       apply_output: ${{ steps.apply.outputs.stdout }}
