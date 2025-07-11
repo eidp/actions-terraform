@@ -85,7 +85,7 @@ env:
 
 jobs:
   plan:
-    name: "Terraform Plan"
+    name: terraform-plan
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -117,7 +117,7 @@ jobs:
 
   apply:
     needs: [plan]
-    name: "Terraform Apply"
+    name: terraform-apply
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     concurrency: ${{ inputs.environment }}-apply

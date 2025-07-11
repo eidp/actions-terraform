@@ -70,6 +70,5 @@ jobs:
       id: check-workflow-status
       uses: eidp/actions-common/check-workflow-status@v0
       with:
-        jobs: 'plan,verify-plan,apply,verify-apply'
+        jobs: 'plan / terraform-plan,verify-plan,apply / terraform-apply,verify-apply'
         github-token: ${{ secrets.GITHUB_TOKEN }}
-      continue-on-error: true
