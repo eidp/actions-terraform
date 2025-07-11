@@ -59,3 +59,17 @@ jobs:
         fi
         echo "Terraform apply succeeded."
         echo "${{ needs.apply.outputs.apply_output }}"
+
+  check-workflow-status:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+    - name: Check Workflow Status
+      id: check-workflow-status
+      uses: eidp/actions-common/check-workflow-status@v0
+      with:
+        jobs: 'plan,verify-plan,apply,verify-apply'
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
