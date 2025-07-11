@@ -119,12 +119,11 @@ jobs:
     needs: [plan]
     name: "Terraform Apply"
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    concurrency: ${{ inputs.environment }}
     outputs:
       apply_outcome: ${{ steps.apply.outcome }}
       apply_output: ${{ steps.apply.outputs.stdout }}
-    # TODO enable once we have an enterprise account
-    #    environment: ${{ inputs.environment }}
-    #    concurrency: ${{ inputs.environment }}
 
     defaults:
       run:
