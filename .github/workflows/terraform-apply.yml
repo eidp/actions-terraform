@@ -1,4 +1,4 @@
-name: Terraform Apply
+name: terraform-apply
 
 on:
   workflow_call:
@@ -85,7 +85,7 @@ env:
 
 jobs:
   plan:
-    name: "Terraform Plan"
+    name: terraform-plan
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -117,14 +117,13 @@ jobs:
 
   apply:
     needs: [plan]
-    name: "Terraform Apply"
+    name: terraform-apply
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    concurrency: ${{ inputs.environment }}-apply
     outputs:
       apply_outcome: ${{ steps.apply.outcome }}
       apply_output: ${{ steps.apply.outputs.stdout }}
-    # TODO enable once we have an enterprise account
-    #    environment: ${{ inputs.environment }}
-    #    concurrency: ${{ inputs.environment }}
 
     defaults:
       run:

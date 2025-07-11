@@ -1,4 +1,4 @@
-name: 'Common PR workflow'
+name: common
 
 on:
   pull_request:
@@ -10,4 +10,4 @@ permissions:
 
 jobs:
   common:
-    uses: eidp/actions-common/.github/workflows/common.yml@main
+    uses: eidp/actions-common/.github/workflows/common.yml@v0
