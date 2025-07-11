@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: plan
     steps:
-    - name: Verify Terraform Plan
+    - name: verify-terraform-plan
       run: |
         if [ "${{ needs.plan.outputs.plan_outcome }}" != "success" ]; then
           echo "Terraform plan failed."
@@ -51,7 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: apply
     steps:
-    - name: Verify Terraform Apply
+    - name: verify-terraform-apply
       run: |
         if [ "${{ needs.apply.outputs.apply_outcome }}" != "success" ]; then
           echo "Terraform apply failed."

@@ -2,7 +2,7 @@
 
 This repository exposes reusable GitHub workflows for managing Terraform resources.
 
-## Terraform Apply (Workflow)
+## terraform-apply (Workflow)
 
 This workflow can be used to apply Terraform changes to your infrastructure. 
 It is designed to be run after a pull request has been merged into the `main` branch, ensuring that the changes are applied in a controlled manner.
@@ -22,7 +22,7 @@ In case Terraform manages GitHub resources, the GitHub App is also used to authe
 The minimal permissions for the GitHub App are:
 - `Read and write` access to `Pull requests`
 
-<!-- BEGIN WORKFLOW INPUT DOCS: Terraform Apply -->
+<!-- BEGIN WORKFLOW INPUT DOCS: terraform-apply -->
 
 ### 🔧 Inputs
 
@@ -56,7 +56,7 @@ The minimal permissions for the GitHub App are:
 ### Example Usage
 
 ```yaml
-name: 'Terraform Apply'
+name: apply
 
 on:
   push:
@@ -78,7 +78,7 @@ jobs:
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
 ```
 
-## Terraform Plan (Workflow)
+## terraform-plan (Workflow)
 
 This workflow can be used to review the changes made to your infrastructure code before applying them.
 It is designed to be run on pull requests, allowing you to see what changes will be made without actually applying them.
@@ -90,7 +90,7 @@ This workflow runs the following terraform commands (in order):
 3. `terraform validate` - Validates the Terraform configuration files.
 4. `terraform plan` - Creates an execution plan, showing what actions Terraform will take to change the infrastructure.
 
-<!-- BEGIN WORKFLOW INPUT DOCS: Terraform Plan -->
+<!-- BEGIN WORKFLOW INPUT DOCS: terraform-plan -->
 
 ### 🔧 Inputs
 
@@ -123,7 +123,7 @@ This workflow runs the following terraform commands (in order):
 ### Example Usage
 
 ```yaml
-name: 'Terraform Plan'
+name: plan
 
 on:
   pull_request:
