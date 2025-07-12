@@ -5,9 +5,9 @@ on:
     branches:
       - main
 
-permissions:
-  pull-requests: write
-
 jobs:
   common:
     uses: eidp/actions-common/.github/workflows/common.yml@v0
+    permissions:
+      pull-requests: write
+      issues: write
