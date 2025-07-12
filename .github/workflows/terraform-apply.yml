@@ -3,6 +3,15 @@ name: terraform-apply
 on:
   workflow_call:
     inputs:
+      credential_file_path:
+        description: >
+          Path of the additional secret file (including filename) that will be created and filled with the contents of the `secrets.CREDENTIAL_FILE_BASE64`.
+          The file path is relative to the working directory of the action.
+          This input can be used to pass an additional credential file required by Terraform providers.
+          Example value: `my-secret.yml`.
+        required: false
+        type: string
+        default: ""
       directory:
         description: >
           Path to the directory containing Terraform configuration.
@@ -10,29 +19,6 @@ on:
         required: false
         type: string
         default: "./terraform"
-
-      terraform_version:
-        description: >
-          The version of Terraform to install and use.
-        required: false
-        type: string
-        default: "1.12.2"
-
-      extra_init_args:
-        description: >
-          Extra arguments to pass to the 'terraform init' command.
-        required: false
-        type: string
-        default: "-lockfile=readonly"
-
-      extra_args:
-        description: >
-          Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands. 
-          Useful for (dynamically) injecting variable files or flags.
-        required: false
-        type: string
-        default: ""
-
       environment:
         description: >
           The environment to use for the Terraform apply step.
@@ -40,32 +26,54 @@ on:
         required: false
         type: string
         default: "github"
+      extra_init_args:
+        description: >
+          Extra arguments to pass to the 'terraform init' command.
+        required: false
+        type: string
+        default: "-lockfile=readonly"
+      extra_args:
+        description: >
+          Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands. 
+          Useful for (dynamically) injecting variable files or flags.
+        required: false
+        type: string
+        default: ""
+      terraform_version:
+        description: >
+          The version of Terraform to install and use.
+        required: false
+        type: string
+        default: "1.12.2"
 
     secrets:
       AWS_ACCESS_KEY_ID:
         description: >
           AWS access key for authenticating with Terraform providers.
         required: true
-
       AWS_SECRET_ACCESS_KEY:
         description: >
           AWS secret key for authenticating with Terraform providers.
         required: true
-
       GITHUB_APP_ID:
         description: >
           GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.
         required: true
-
-      GITHUB_APP_PEM_FILE:
-        description: >
-          GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.
-        required: true
-
       GITHUB_APP_INSTALLATION_ID:
         description: >
           GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.
         required: true
+      GITHUB_APP_PEM_FILE:
+        description: >
+          GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.
+        required: true
+      CREDENTIAL_FILE_BASE64:
+        description: >
+          Base64 encoded contents that will be written to the file specified by the `credential_file_path` input.
+          You can use this to pass additional credentials required by Terraform providers.
+          Encode the file contents using `base64` and set it as a secret in your GitHub repository.
+          Example to encode a secret file: `echo -n "my-secret-content" | base64`
+        required: false
     outputs:
       apply_outcome:
         description: |
@@ -95,6 +103,13 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
+
+    - name: Create credential file
+      if: ${{ inputs.credential_file_path != '' }}
+      run: |
+        mkdir -p $(dirname "${{ inputs.credential_file_path }}")
+        echo "${{ secrets.CREDENTIAL_FILE_BASE64 }}" | base64 --decode > "${{ inputs.credential_file_path }}"
+        echo "Credential file created at ${{ inputs.credential_file_path }}"
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -133,6 +148,13 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
+
+    - name: Create credential file
+      if: ${{ inputs.credential_file_path != '' }}
+      run: |
+        mkdir -p $(dirname "${{ inputs.credential_file_path }}")
+        echo "${{ secrets.CREDENTIAL_FILE_BASE64 }}" | base64 --decode > "${{ inputs.credential_file_path }}"
+        echo "Credential file created at ${{ inputs.credential_file_path }}"
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
