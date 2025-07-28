@@ -95,6 +95,8 @@ jobs:
   plan:
     name: terraform-plan
     runs-on: ubuntu-latest
+    outputs:
+      plan-id: ${{ steps.generate-plan-id.outputs.plan-id }}
     defaults:
       run:
         shell: bash
@@ -103,6 +105,13 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v4
+
+    - name: Generate random plan ID
+      id: generate-plan-id
+      run: |
+        PLAN_ID=$(echo $RANDOM | md5sum | cut -c1-8)
+        echo "PLAN_ID=$PLAN_ID" >> $GITHUB_ENV
+        echo "plan-id=$PLAN_ID" >> $GITHUB_OUTPUT
 
     - name: Create credential file
       if: ${{ inputs.credential_file_path != '' }}
@@ -127,7 +136,7 @@ jobs:
     - name: Upload plan artifact
       uses: actions/upload-artifact@v4
       with:
-        name: tfplan
+        name: tfplan-${{ env.PLAN_ID }}
         path: ${{ inputs.directory }}/tfplan
 
   apply:
@@ -168,7 +177,7 @@ jobs:
     - name: Download plan artifact
       uses: actions/download-artifact@v4
       with:
-        name: tfplan
+        name: tfplan-${{ needs.plan.outputs.plan-id }}
         path: ${{ inputs.directory }}
 
     - name: Terraform Apply
