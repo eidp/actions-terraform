@@ -102,6 +102,13 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@v4
 
+    - name: Generate App token
+      id: generate-app-token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ secrets.GITHUB_APP_ID }}
+        private-key: ${{ secrets.GITHUB_APP_PEM_FILE }}
+
     - name: Create credential file
       if: ${{ inputs.credential_file_path != '' }}
       run: |
@@ -131,13 +138,6 @@ jobs:
       run: |
         terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan
         terraform show -no-color tfplan
-
-    - name: Generate App token
-      id: generate-app-token
-      uses: actions/create-github-app-token@v2
-      with:
-        app-id: ${{ secrets.GITHUB_APP_ID }}
-        private-key: ${{ secrets.GITHUB_APP_PEM_FILE }}
 
     - name: Comment on PR
       id: add-pr-comment
