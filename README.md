@@ -2,9 +2,16 @@
 
 This repository contains GitHub Actions and shared workflows for managing Terraform resources.
 
-## Workflow documentation
+<!-- BEGIN SHARED WORKFLOWS -->
 
-The workflow documentation is located in the [`.github/workflows/README.md`](.github/workflows/README.md) file.
+## 📚 Shared Workflows
+
+The following reusable workflows are available in this repository:
+
+- [terraform-apply](./workflows/README.md#terraform-apply-workflow)
+- [terraform-plan](./workflows/README.md#terraform-plan-workflow)
+
+<!-- END SHARED WORKFLOWS -->
 
 ## Development
 

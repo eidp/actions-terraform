@@ -1,6 +1,12 @@
 repos:
   - repo: local
     hooks:
+    - id: generate-workflow-list
+      name: Update shared workflow list
+      entry: uv run ../actions-common/scripts/generate-workflow-list.py
+      language: system
+      files: '^\.github/workflows/.*\.ya?ml$'
+      pass_filenames: false
     - id: generate-workflow-docs
       name: Update shared workflow input docs
       entry: uv run ../actions-common/scripts/generate-workflow-docs.py

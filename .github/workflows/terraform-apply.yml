@@ -47,7 +47,7 @@ on:
         default: "1.12.2"
       runs-on:
         description: >
-          The type of runner to use for the job. Defaults to 'ubuntu-latest'.
+          The type of runner to use for the workflow. Defaults to 'ubuntu-latest'.
           You can specify a different runner if needed.
         required: false
         type: string
