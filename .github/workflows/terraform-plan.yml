@@ -38,6 +38,13 @@ on:
         required: false
         type: string
         default: "1.12.2"
+      runs-on:
+        description: >
+          The type of runner to use for the job. Defaults to 'ubuntu-latest'.
+          You can specify a different runner if needed.
+        required: false
+        type: string
+        default: "ubuntu-latest"
     outputs:
       plan_outcome:
         description: |
@@ -87,7 +94,7 @@ env:
 jobs:
   plan:
     name: terraform-plan
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs-on }}
 
     outputs:
       plan_outcome: ${{ steps.plan.outcome }}
@@ -115,6 +122,11 @@ jobs:
         mkdir -p $(dirname "${{ inputs.credential_file_path }}")
         echo "${{ secrets.CREDENTIAL_FILE_BASE64 }}" | base64 --decode > "${{ inputs.credential_file_path }}"
         echo "Credential file created at ${{ inputs.credential_file_path }}"
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
