@@ -8,8 +8,8 @@ This repository contains GitHub Actions and shared workflows for managing Terraf
 
 The following reusable workflows are available in this repository:
 
-- [terraform-apply](./workflows/README.md#terraform-apply-workflow)
-- [terraform-plan](./workflows/README.md#terraform-plan-workflow)
+- [terraform-apply](./.github/workflows/README.md#terraform-apply-workflow)
+- [terraform-plan](./.github/workflows/README.md#terraform-plan-workflow)
 
 <!-- END SHARED WORKFLOWS -->
 
