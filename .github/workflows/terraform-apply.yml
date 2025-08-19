@@ -111,7 +111,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
     - name: Generate random plan ID
       id: generate-plan-id
@@ -128,12 +128,12 @@ jobs:
         echo "Credential file created at ${{ inputs.credential_file_path }}"
 
     - name: Setup Node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         node-version: '20.x'
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
       with:
         terraform_version: ${{ inputs.terraform_version }}
 
@@ -146,7 +146,7 @@ jobs:
       run: terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan && terraform show -no-color tfplan
 
     - name: Upload plan artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       with:
         name: tfplan-${{ env.PLAN_ID }}
         path: ${{ inputs.directory }}/tfplan
@@ -168,7 +168,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
     - name: Create credential file
       if: ${{ inputs.credential_file_path != '' }}
@@ -178,12 +178,12 @@ jobs:
         echo "Credential file created at ${{ inputs.credential_file_path }}"
 
     - name: Setup Node
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         node-version: '20.x'
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
       with:
         terraform_version: ${{ inputs.terraform_version }}
 
@@ -192,7 +192,7 @@ jobs:
       run: terraform init -lockfile=readonly -input=false
 
     - name: Download plan artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
       with:
         name: tfplan-${{ needs.plan.outputs.plan-id }}
         path: ${{ inputs.directory }}
