@@ -62,6 +62,36 @@ jobs:
         echo "Terraform apply succeeded."
         echo "${{ needs.apply.outputs.apply_output }}"
 
+  test-encrypted-artifact-upload-download:
+    runs-on: kubernetes-runner
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+    - name: Prepare plaintext and key
+      id: prep
+      run: |
+        mkdir -p tmp/upload tmp/download
+        cat > tmp/upload/plain.txt << 'EOF'
+        sample: secret
+        answer: 42
+        EOF
+        echo "KEY=$(openssl rand -hex 16)" >> $GITHUB_ENV
+    - name: Encrypt credential file
+      id: enc
+      uses: ./upload-encrypted-artifact
+      with:
+        artifact_name: test-artifact
+        paths: tmp/upload/plain.txt
+        key: ${{ env.KEY }}
+    - name: Decrypt credential file
+      uses: ./download-encrypted-artifact
+      with:
+        artifact_name: test-artifact
+        out_dir: tmp/download
+        key: ${{ env.KEY }}
+    - name: Verify decrypted equals original
+      run: diff -u tmp/upload/plain.txt tmp/download/plain.txt
+
   check-workflow-status:
     runs-on: kubernetes-runner
     permissions:
@@ -72,5 +102,5 @@ jobs:
       id: check-workflow-status
       uses: eidp/actions-common/check-workflow-status@1d37ef097c48440e0d87e70b0849bfa1b09cc961 # v0
       with:
-        jobs: 'plan / terraform-plan,verify-plan,apply / terraform-apply,verify-apply'
+        jobs: 'plan / terraform-plan,verify-plan,apply / terraform-apply,verify-apply,test-encrypted-artifact-upload-downloadt'
         github-token: ${{ secrets.GITHUB_TOKEN }}

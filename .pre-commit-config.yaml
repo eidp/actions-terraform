@@ -3,6 +3,7 @@ repos:
   rev: v0.3.0
   hooks:
   - id: generate-workflow-docs
+  - id : generate-action-docs
 
 - repo: https://github.com/codespell-project/codespell
   rev: v2.4.1

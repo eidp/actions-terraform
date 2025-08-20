@@ -3,15 +3,6 @@ name: terraform-plan
 on:
   workflow_call:
     inputs:
-      credential_file_path:
-        description: >
-          Path of the additional secret file (including filename) that will be created and filled with the contents of the `secrets.CREDENTIAL_FILE_BASE64`.
-          The file path is relative to the working directory of the action.
-          This input can be used to pass an additional credential file required by Terraform providers.
-          Example value: `my-secret.yml`.
-        required: false
-        type: string
-        default: ""
       directory:
         description: >
           Path to the directory containing Terraform configuration.
@@ -38,6 +29,18 @@ on:
         required: false
         type: string
         default: "1.12.2"
+      encrypted_artifact_name:
+        description: >
+          Name of the encrypted artifact to download. The artifact must contain a single file named `archive.zip.bin` created by the encrypt action.
+        required: false
+        type: string
+        default: ""
+      encrypted_artifact_directory:
+        description: >
+          Directory where the encrypted artifact should be extracted. Defaults to the same directory as the Terraform configuration.
+        required: false
+        type: string
+        default: "./terraform"
       runs-on:
         description: >
           The type of runner to use for the workflow. Defaults to 'ubuntu-latest'.
@@ -64,12 +67,9 @@ on:
         description: >
           AWS secret key for authenticating with Terraform providers.
         required: true
-      CREDENTIAL_FILE_BASE64:
+      ARTIFACT_KEY:
         description: >
-          Base64 encoded contents that will be written to the file specified by the `credential_file_path` input.
-          You can use this to pass additional credentials required by Terraform providers.
-          Encode the file contents using `base64` and set it as a secret in your GitHub repository.
-          Example to encode a secret file: `echo -n "my-secret-content" | base64`
+          Passphrase used to decrypt the encrypted artifact. Use the same value you provided to the encrypt action.
         required: false
       GITHUB_APP_ID:
         description: >
@@ -116,12 +116,13 @@ jobs:
         app-id: ${{ secrets.GITHUB_APP_ID }}
         private-key: ${{ secrets.GITHUB_APP_PEM_FILE }}
 
-    - name: Create credential file
-      if: ${{ inputs.credential_file_path != '' }}
-      run: |
-        mkdir -p $(dirname "${{ inputs.credential_file_path }}")
-        echo "${{ secrets.CREDENTIAL_FILE_BASE64 }}" | base64 --decode > "${{ inputs.credential_file_path }}"
-        echo "Credential file created at ${{ inputs.credential_file_path }}"
+    - name: Download encrypted artifact
+      if: ${{ inputs.encrypted_artifact_name != '' }}
+      uses: ./download-encrypted-artifact
+      with:
+        artifact_name: ${{ inputs.encrypted_artifact_name }}
+        key: ${{ secrets.ARTIFACT_KEY }}
+        out_dir: ${{ inputs.encrypted_artifact_directory }}
 
     - name: Setup Node
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4

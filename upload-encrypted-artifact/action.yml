@@ -1,0 +1,64 @@
+name: upload-encrypted-artifact
+description: |
+  This action creates an encrypted artifact.
+
+  This action zips the provided paths into a file named `archive.zip`, encrypts it producing `archive.zip.bin`, and uploads the encrypted file as an artifact.
+  - Cipher: OpenSSL symmetric cipher (default: aes-256-cbc)
+  - KDF: pbkdf2 with salt (OpenSSL default for `-pbkdf2 -salt`)
+
+  Important:
+  - Do NOT echo the passphrase (key). Keep it only in GitHub secrets.
+  - Use the matching `download-encrypted-artifact` action to download, decrypt, and unzip the archive in consumer workflows.
+
+author: eidp
+branding:
+  icon: lock
+  color: purple
+inputs:
+  paths:
+    description: >
+      Space-separated list of files/directories to include in the archive. Globs are supported by the shell.
+    required: true
+  key:
+    description: Passphrase to use for encryption (store as a secret in your workflow).
+    required: true
+  cipher:
+    description: OpenSSL cipher to use for encryption.
+    required: false
+    default: aes-256-cbc
+  artifact_name:
+    description: Name of the artifact to upload (defaults to encrypted-archive).
+    required: false
+    default: encrypted-archive
+runs:
+  using: composite
+  steps:
+  - id: bundle-and-encrypt
+    shell: bash
+    run: |
+      set -euo pipefail
+      : "${{ inputs.paths }}"
+      : "${{ inputs.key }}"
+      CIPHER="${{ inputs.cipher }}"; if [ -z "${CIPHER}" ]; then CIPHER=aes-256-cbc; fi
+      
+      WORKDIR="$GITHUB_WORKSPACE"
+      cd "$WORKDIR"
+      
+      # Create archive.zip
+      rm -f archive.zip archive.zip.bin
+      # Use zip with recursion; expand the provided paths via the shell
+      # shellcheck disable=SC2086
+      zip -r archive.zip ${{ inputs.paths }}
+      
+      # Encrypt archive.zip -> archive.zip.bin
+      openssl enc -"$CIPHER" -pbkdf2 -salt -pass pass:"${{ inputs.key }}" -in archive.zip -out archive.zip.bin
+      
+      echo "Created and encrypted archive: $(pwd)/archive.zip.bin"
+
+  - name: Upload encrypted archive artifact
+    uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+    with:
+      name: ${{ inputs.artifact_name }}
+      path: archive.zip.bin
+      if-no-files-found: error
+outputs: {}
