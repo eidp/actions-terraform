@@ -76,6 +76,7 @@ jobs:
         answer: 42
         EOF
         echo "KEY=$(openssl rand -hex 16)" >> $GITHUB_ENV
+        ls -la tmp/upload/
     - name: Encrypt credential file
       id: enc
       uses: ./upload-encrypted-artifact
@@ -89,6 +90,8 @@ jobs:
         artifact_name: test-artifact
         out_dir: tmp/download
         key: ${{ env.KEY }}
+    - name: list decrypted files
+      run: ls -l tmp/download/
     - name: Verify decrypted equals original
       run: diff -u tmp/upload/plain.txt tmp/download/plain.txt
 
