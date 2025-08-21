@@ -3,20 +3,20 @@
 
 Downloads an encrypted artifact file, decrypts it and extract its contents.
 
-This action downloads an artifact containing `archive.zip.bin`, decrypts it to `archive.zip` and unzips into the target directory.
+This action downloads an artifact containing `archive.tar.bin`, decrypts it to `archive.tar` and extracts (untars) into the target directory.
 - Cipher: OpenSSL symmetric cipher (default: aes-256-cbc)
 - KDF: pbkdf2 with salt (OpenSSL default for `-pbkdf2 -salt`)
 
 ## 🔧 Inputs
 
-|      Name      |                                                                     Description                                                                     |Required|       Default      |
-|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|--------|--------------------|
-| `artifact_name`|                                          Name of the artifact to download that contains `archive.zip.bin`.                                          |   No   |`encrypted-artifact`|
-|`encrypted_file`|Path to the encrypted archive file (archive.zip.bin). If not provided, defaults to `${download_path}/archive.zip.bin` when an artifact is downloaded.|   No   |         ``         |
-|      `key`     |                                            Passphrase used for encryption/decryption (store as a secret).                                           |   Yes  |                    |
-|    `out_dir`   |                               Directory to extract the decrypted archive into (defaults to current working directory).                              |   No   |         `.`        |
-|    `cipher`    |                                                      OpenSSL cipher used (default aes-256-cbc).                                                     |   No   |                    |
-|    `cleanup`   |                            Whether to remove archive.zip and archive.zip.bin after extraction (true/false, default true).                           |   No   |       `true`       |
+|      Name      |                                                                         Description                                                                         |Required|       Default      |
+|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|--------------------|
+| `artifact_name`|                                              Name of the artifact to download that contains `archive.tar.bin`.                                              |   No   |`encrypted-artifact`|
+|`encrypted_file`|Path to the encrypted archive file (archive.tar.bin). If not provided, defaults to `archive.tar.bin` in the current directory when an artifact is downloaded.|   No   |         ``         |
+|      `key`     |                                                Passphrase used for encryption/decryption (store as a secret).                                               |   Yes  |                    |
+|    `out_dir`   |                                   Directory to extract the decrypted archive into (defaults to current working directory).                                  |   No   |         `.`        |
+|    `cipher`    |                                                          OpenSSL cipher used (default aes-256-cbc).                                                         |   No   |                    |
+|    `cleanup`   |                                Whether to remove archive.tar and archive.tar.bin after extraction (true/false, default true).                               |   No   |       `true`       |
 
 ## 📤 Outputs
 
