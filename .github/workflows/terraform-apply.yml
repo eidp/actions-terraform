@@ -116,7 +116,7 @@ jobs:
 
     - name: Download encrypted artifact
       if: ${{ inputs.encrypted_artifact_name != '' }}
-      uses: ./download-encrypted-artifact
+      uses: eidp/actions-terraform/download-encrypted-artifact@e3e55fb3a21474b319abd875132a4af3d34b1f8c
       with:
         artifact_name: ${{ inputs.encrypted_artifact_name }}
         key: ${{ secrets.ARTIFACT_KEY }}
@@ -167,7 +167,7 @@ jobs:
 
     - name: Download encrypted artifact
       if: ${{ inputs.encrypted_artifact_name != '' }}
-      uses: ./download-encrypted-artifact
+      uses: eidp/actions-terraform/download-encrypted-artifact@e3e55fb3a21474b319abd875132a4af3d34b1f8c
       with:
         artifact_name: ${{ inputs.encrypted_artifact_name }}
         key: ${{ secrets.ARTIFACT_KEY }}
