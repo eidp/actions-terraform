@@ -71,7 +71,11 @@ runs:
       ARCHIVE="$OUT_DIR/archive.tar"
 
       # Decrypt archive.tar.bin -> archive.tar
-      openssl enc -"$CIPHER" -d -pbkdf2 -pass pass:"$KEY" -in "$ENC_INPUT" -out "$ARCHIVE"
+      KEY_FILE="$(mktemp)"
+      chmod 600 "$KEY_FILE"
+      printf '%s' "$KEY" > "$KEY_FILE"
+      openssl enc -"$CIPHER" -d -pbkdf2 -pass file:"$KEY_FILE" -in "$ENC_INPUT" -out "$ARCHIVE"
+      rm -f "$KEY_FILE"
 
       # Extract into OUT_DIR
       tar -xf "$ARCHIVE" -C "$OUT_DIR"
