@@ -11,6 +11,7 @@ This action downloads an artifact containing `archive.tar.bin`, decrypts it to `
 
 |      Name      |                                                                         Description                                                                         |Required|       Default      |
 |----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|--------------------|
+|   `directory`  |                                           Directory to run the action in (defaults to current working directory).                                           |   No   |         ``         |
 | `artifact_name`|                                              Name of the artifact to download that contains `archive.tar.bin`.                                              |   No   |`encrypted-artifact`|
 |`encrypted_file`|Path to the encrypted archive file (archive.tar.bin). If not provided, defaults to `archive.tar.bin` in the current directory when an artifact is downloaded.|   No   |         ``         |
 |      `key`     |                                                Passphrase used for encryption/decryption (store as a secret).                                               |   Yes  |                    |

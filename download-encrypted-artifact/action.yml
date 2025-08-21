@@ -11,6 +11,10 @@ branding:
   icon: unlock
   color: green
 inputs:
+  directory:
+    description: Directory to run the action in (defaults to current working directory).
+    required: false
+    default: ''
   artifact_name:
     description: Name of the artifact to download that contains `archive.tar.bin`.
     required: false
@@ -45,6 +49,14 @@ runs:
     shell: bash
     run: |
       set -euo pipefail
+      
+      if [ -z "${{ inputs.directory }}" ]; then
+        WORKDIR="$(pwd)"
+      else
+        WORKDIR="${{ inputs.directory }}"
+      fi
+      cd "$WORKDIR"
+
       KEY="${{ inputs.key }}"; OUT_DIR="${{ inputs.out_dir }}"
       CIPHER="${{ inputs.cipher }}"; if [ -z "${CIPHER}" ]; then CIPHER=aes-256-cbc; fi
       CLEANUP="${{ inputs.cleanup }}";

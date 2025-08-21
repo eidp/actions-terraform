@@ -15,6 +15,13 @@ branding:
   icon: lock
   color: purple
 inputs:
+  directory:
+    description: >
+      Directory to run the action in. Defaults to the current working directory.
+      If provided, the action will change to this directory before creating the archive.
+      This is where the archive will be created and encrypted.
+    required: false
+    default: ''
   paths:
     description: >
       Space-separated list of files/directories to include in the archive. Globs are supported by the shell.
@@ -40,8 +47,12 @@ runs:
       : "${{ inputs.paths }}"
       : "${{ inputs.key }}"
       CIPHER="${{ inputs.cipher }}"; if [ -z "${CIPHER}" ]; then CIPHER=aes-256-cbc; fi
-      
-      WORKDIR="$GITHUB_WORKSPACE"
+
+      if [ -z "${{ inputs.directory }}" ]; then
+          WORKDIR="$(pwd)"
+      else
+          WORKDIR="${{ inputs.directory }}"
+      fi
       cd "$WORKDIR"
       
       # Create archive.tar
