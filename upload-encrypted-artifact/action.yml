@@ -59,7 +59,9 @@ runs:
       rm -f archive.tar archive.tar.bin
       # Use tar with recursion; expand the provided paths via the shell
       # shellcheck disable=SC2086
-      tar --exclude=archive.tar --exclude=archive.tar.bin -cf archive.tar ${{ inputs.paths }}
+      # Safely split paths into an array to prevent code injection
+      read -r -a PATHS_ARRAY <<< "${{ inputs.paths }}"
+      tar --exclude=archive.tar --exclude=archive.tar.bin -cf archive.tar "${PATHS_ARRAY[@]}"
 
       # Encrypt archive.tar -> archive.tar.bin
       openssl enc -"$CIPHER" -pbkdf2 -salt -pass pass:"${{ inputs.key }}" -in archive.tar -out archive.tar.bin
