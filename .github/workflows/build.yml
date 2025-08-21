@@ -70,30 +70,28 @@ jobs:
     - name: Prepare plaintext and key
       id: prep
       run: |
-        mkdir -p tmp/upload tmp/download
-        cat > tmp/upload/plain.txt << 'EOF'
+        cat > plain.txt << 'EOF'
         sample: secret
         answer: 42
         EOF
         echo "KEY=$(openssl rand -hex 16)" >> $GITHUB_ENV
-        ls -la tmp/upload/
     - name: Encrypt credential file
       id: enc
       uses: ./upload-encrypted-artifact
       with:
         artifact_name: test-artifact
-        paths: tmp/upload/plain.txt
+        paths: plain.txt
         key: ${{ env.KEY }}
     - name: Decrypt credential file
       uses: ./download-encrypted-artifact
       with:
         artifact_name: test-artifact
-        out_dir: tmp/download
+        out_dir: download
         key: ${{ env.KEY }}
     - name: list decrypted files
-      run: ls -l tmp/download/
+      run: ls -l download
     - name: Verify decrypted equals original
-      run: diff -u tmp/upload/plain.txt tmp/download/plain.txt
+      run: diff -u plain.txt download/plain.txt
 
   check-workflow-status:
     runs-on: kubernetes-runner
