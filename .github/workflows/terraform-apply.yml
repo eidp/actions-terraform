@@ -42,12 +42,6 @@ on:
         required: false
         type: string
         default: ""
-      encrypted_artifact_directory:
-        description: >
-          Directory where the encrypted artifact should be extracted. Defaults to the same directory as the Terraform configuration.
-        required: false
-        type: string
-        default: "./terraform"
       runs-on:
         description: >
           The type of runner to use for the workflow. Defaults to 'ubuntu-latest'.
@@ -126,7 +120,7 @@ jobs:
       with:
         artifact_name: ${{ inputs.encrypted_artifact_name }}
         key: ${{ secrets.ARTIFACT_KEY }}
-        out_dir: ${{ inputs.directory }}
+        out_dir: "./"
 
     - name: Setup Node
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -177,7 +171,7 @@ jobs:
       with:
         artifact_name: ${{ inputs.encrypted_artifact_name }}
         key: ${{ secrets.ARTIFACT_KEY }}
-        out_dir: ${{ inputs.encrypted_artifact_directory }}
+        out_dir: "./"
 
     - name: Setup Node
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4

@@ -26,16 +26,15 @@ The minimal permissions for the GitHub App are:
 
 ### 🔧 Inputs
 
-|Name                           |Description                                                                                                                                  |Required|Type   |Default              |
-|-------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
-|`directory`                    |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                           |No      |string |`./terraform`        |
-|`environment`                  |The environment to use for the Terraform apply step. This can be used to set up extra approval before applying changes.                      |No      |string |`github`             |
-|`extra_init_args`              |Extra arguments to pass to the 'terraform init' command.                                                                                     |No      |string |`-lockfile=readonly` |
-|`extra_args`                   |Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands.  Useful for (dynamically) injecting variable files or flags. |No      |string |``                   |
-|`terraform_version`            |The version of Terraform to install and use.                                                                                                 |No      |string |`1.12.2`             |
-|`encrypted_artifact_name`      |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.zip.bin` created by the encrypt action.   |No      |string |``                   |
-|`encrypted_artifact_directory` |Directory where the encrypted artifact should be extracted. Defaults to the same directory as the Terraform configuration.                   |No      |string |`./terraform`        |
-|`runs-on`                      |The type of runner to use for the workflow. Defaults to 'ubuntu-latest'. You can specify a different runner if needed.                       |No      |string |`ubuntu-latest`      |
+|Name                      |Description                                                                                                                                  |Required|Type   |Default              |
+|--------------------------|---------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
+|`directory`               |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                           |No      |string |`./terraform`        |
+|`environment`             |The environment to use for the Terraform apply step. This can be used to set up extra approval before applying changes.                      |No      |string |`github`             |
+|`extra_init_args`         |Extra arguments to pass to the 'terraform init' command.                                                                                     |No      |string |`-lockfile=readonly` |
+|`extra_args`              |Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands.  Useful for (dynamically) injecting variable files or flags. |No      |string |``                   |
+|`terraform_version`       |The version of Terraform to install and use.                                                                                                 |No      |string |`1.12.2`             |
+|`encrypted_artifact_name` |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.zip.bin` created by the encrypt action.   |No      |string |``                   |
+|`runs-on`                 |The type of runner to use for the workflow. Defaults to 'ubuntu-latest'. You can specify a different runner if needed.                       |No      |string |`ubuntu-latest`      |
 
 ### 🔐 Secrets
 
@@ -101,15 +100,14 @@ This workflow runs the following terraform commands (in order):
 
 ### 🔧 Inputs
 
-|Name                           |Description                                                                                                                                |Required|Type   |Default              |
-|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
-|`directory`                    |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                         |No      |string |`./terraform`        |
-|`extra_args`                   |Extra arguments to pass to the 'terraform plan' command.  Useful for (dynamically) injecting variable files or flags.                      |No      |string |``                   |
-|`extra_init_args`              |Extra arguments to pass to the 'terraform init' command.                                                                                   |No      |string |`-lockfile=readonly` |
-|`terraform_version`            |The version of Terraform to install and use.                                                                                               |No      |string |`1.12.2`             |
-|`encrypted_artifact_name`      |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.zip.bin` created by the encrypt action. |No      |string |``                   |
-|`encrypted_artifact_directory` |Directory where the encrypted artifact should be extracted. Defaults to the same directory as the Terraform configuration.                 |No      |string |`./terraform`        |
-|`runs-on`                      |The type of runner to use for the workflow. Defaults to 'ubuntu-latest'. You can specify a different runner if needed.                     |No      |string |`ubuntu-latest`      |
+|Name                      |Description                                                                                                                                |Required|Type   |Default              |
+|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
+|`directory`               |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                         |No      |string |`./terraform`        |
+|`extra_args`              |Extra arguments to pass to the 'terraform plan' command.  Useful for (dynamically) injecting variable files or flags.                      |No      |string |``                   |
+|`extra_init_args`         |Extra arguments to pass to the 'terraform init' command.                                                                                   |No      |string |`-lockfile=readonly` |
+|`terraform_version`       |The version of Terraform to install and use.                                                                                               |No      |string |`1.12.2`             |
+|`encrypted_artifact_name` |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.zip.bin` created by the encrypt action. |No      |string |``                   |
+|`runs-on`                 |The type of runner to use for the workflow. Defaults to 'ubuntu-latest'. You can specify a different runner if needed.                     |No      |string |`ubuntu-latest`      |
 
 ### 🔐 Secrets
 
