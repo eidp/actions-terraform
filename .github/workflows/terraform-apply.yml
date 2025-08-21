@@ -38,7 +38,7 @@ on:
         default: "1.12.2"
       encrypted_artifact_name:
         description: >
-          Name of the encrypted artifact to download. The artifact must contain a single file named `archive.zip.bin` created by the encrypt action.
+          Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.bin` created by the encrypt action.
         required: false
         type: string
         default: ""
