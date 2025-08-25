@@ -62,6 +62,49 @@ jobs:
         echo "Terraform apply succeeded."
         echo "${{ needs.apply.outputs.apply_output }}"
 
+  test-encrypted-artifact-upload-download:
+    runs-on: kubernetes-runner
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+    - name: Setup age
+      uses: alessiodionisi/setup-age-action@82b9aea163ade7fe23441552a514cf666b214077 # v1.3.0
+    - name: Prepare plaintext and age key pair
+      id: age-keys
+      run: |
+        set -euo pipefail
+        cat > plain.txt << 'EOF'
+        sample: secret
+        answer: 42
+        EOF
+        # Generate age identity and capture public recipient key
+        AGE_OUTPUT="$(age-keygen 2>&1)"
+        echo "$AGE_OUTPUT" > identity.txt
+        RECIPIENT=$(echo "$AGE_OUTPUT" | sed -n 's/^# public key: //p')
+        if [ -z "$RECIPIENT" ]; then
+          echo "Failed to extract age recipient public key" >&2
+          exit 1
+        fi
+        echo "recipient=$RECIPIENT" >> $GITHUB_OUTPUT
+        echo "identity=$(echo "$AGE_OUTPUT" | grep '^AGE-SECRET-KEY')" >> $GITHUB_OUTPUT
+    - name: Upload encrypted artifact (age)
+      id: enc
+      uses: ./upload-encrypted-artifact
+      with:
+        artifact_name: test-artifact
+        paths: plain.txt
+        recipient: ${{ steps.age-keys.outputs.recipient }}
+    - name: Decrypt encrypted artifact (age)
+      uses: ./download-encrypted-artifact
+      with:
+        artifact_name: test-artifact
+        out_dir: download
+        identity: ${{ steps.age-keys.outputs.identity }}
+    - name: list decrypted files
+      run: ls -l download
+    - name: Verify decrypted equals original
+      run: diff -u plain.txt download/plain.txt
+
   check-workflow-status:
     runs-on: kubernetes-runner
     permissions:
@@ -72,5 +115,5 @@ jobs:
       id: check-workflow-status
       uses: eidp/actions-common/check-workflow-status@1d37ef097c48440e0d87e70b0849bfa1b09cc961 # v0
       with:
-        jobs: 'plan / terraform-plan,verify-plan,apply / terraform-apply,verify-apply'
+        jobs: 'plan / terraform-plan,verify-plan,apply / terraform-apply,verify-apply,test-encrypted-artifact-upload-download'
         github-token: ${{ secrets.GITHUB_TOKEN }}

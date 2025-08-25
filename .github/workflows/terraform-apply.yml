@@ -3,15 +3,6 @@ name: terraform-apply
 on:
   workflow_call:
     inputs:
-      credential_file_path:
-        description: >
-          Path of the additional secret file (including filename) that will be created and filled with the contents of the `secrets.CREDENTIAL_FILE_BASE64`.
-          The file path is relative to the working directory of the action.
-          This input can be used to pass an additional credential file required by Terraform providers.
-          Example value: `my-secret.yml`.
-        required: false
-        type: string
-        default: ""
       directory:
         description: >
           Path to the directory containing Terraform configuration.
@@ -45,6 +36,12 @@ on:
         required: false
         type: string
         default: "1.12.2"
+      encrypted_artifact_name:
+        description: >
+          Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action.
+        required: false
+        type: string
+        default: ""
       runs-on:
         description: >
           The type of runner to use for the workflow. Defaults to 'ubuntu-latest'.
@@ -74,12 +71,9 @@ on:
         description: >
           GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.
         required: true
-      CREDENTIAL_FILE_BASE64:
+      ARTIFACT_IDENTITY:
         description: >
-          Base64 encoded contents that will be written to the file specified by the `credential_file_path` input.
-          You can use this to pass additional credentials required by Terraform providers.
-          Encode the file contents using `base64` and set it as a secret in your GitHub repository.
-          Example to encode a secret file: `echo -n "my-secret-content" | base64`
+          age identity (private key) used to decrypt the encrypted artifact (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-'). Use the matching recipient public key when uploading.
         required: false
     outputs:
       apply_outcome:
@@ -120,12 +114,13 @@ jobs:
         echo "PLAN_ID=$PLAN_ID" >> $GITHUB_ENV
         echo "plan-id=$PLAN_ID" >> $GITHUB_OUTPUT
 
-    - name: Create credential file
-      if: ${{ inputs.credential_file_path != '' }}
-      run: |
-        mkdir -p $(dirname "${{ inputs.credential_file_path }}")
-        echo "${{ secrets.CREDENTIAL_FILE_BASE64 }}" | base64 --decode > "${{ inputs.credential_file_path }}"
-        echo "Credential file created at ${{ inputs.credential_file_path }}"
+    - name: Download encrypted artifact
+      if: ${{ inputs.encrypted_artifact_name != '' }}
+      uses: eidp/actions-terraform/download-encrypted-artifact@d7534a19f0619ec728f03dae8bb2be1dd714ec9b
+      with:
+        artifact_name: ${{ inputs.encrypted_artifact_name }}
+        identity: ${{ secrets.ARTIFACT_IDENTITY }}
+        out_dir: "./"
 
     - name: Setup Node
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -170,12 +165,13 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
-    - name: Create credential file
-      if: ${{ inputs.credential_file_path != '' }}
-      run: |
-        mkdir -p $(dirname "${{ inputs.credential_file_path }}")
-        echo "${{ secrets.CREDENTIAL_FILE_BASE64 }}" | base64 --decode > "${{ inputs.credential_file_path }}"
-        echo "Credential file created at ${{ inputs.credential_file_path }}"
+    - name: Download encrypted artifact
+      if: ${{ inputs.encrypted_artifact_name != '' }}
+      uses: eidp/actions-terraform/download-encrypted-artifact@d7534a19f0619ec728f03dae8bb2be1dd714ec9b
+      with:
+        artifact_name: ${{ inputs.encrypted_artifact_name }}
+        identity: ${{ secrets.ARTIFACT_IDENTITY }}
+        out_dir: "./"
 
     - name: Setup Node
       uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -189,7 +185,7 @@ jobs:
 
     - name: Terraform Init
       id: init
-      run: terraform init -lockfile=readonly -input=false
+      run: terraform init ${{ inputs.extra_init_args }} -input=false
 
     - name: Download plan artifact
       uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5

@@ -26,26 +26,26 @@ The minimal permissions for the GitHub App are:
 
 ### 🔧 Inputs
 
-|Name                   |Description                                                                                                                                                                                                                                                                                                                                        |Required|Type   |Default              |
-|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
-|`credential_file_path` |Path of the additional secret file (including filename) that will be created and filled with the contents of the `secrets.CREDENTIAL_FILE_BASE64`. The file path is relative to the working directory of the action. This input can be used to pass an additional credential file required by Terraform providers. Example value: `my-secret.yml`. |No      |string |``                   |
-|`directory`            |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                                                                                                                                                                                                                                 |No      |string |`./terraform`        |
-|`environment`          |The environment to use for the Terraform apply step. This can be used to set up extra approval before applying changes.                                                                                                                                                                                                                            |No      |string |`github`             |
-|`extra_init_args`      |Extra arguments to pass to the 'terraform init' command.                                                                                                                                                                                                                                                                                           |No      |string |`-lockfile=readonly` |
-|`extra_args`           |Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands.  Useful for (dynamically) injecting variable files or flags.                                                                                                                                                                                                       |No      |string |``                   |
-|`terraform_version`    |The version of Terraform to install and use.                                                                                                                                                                                                                                                                                                       |No      |string |`1.12.2`             |
-|`runs-on`              |The type of runner to use for the workflow. Defaults to 'ubuntu-latest'. You can specify a different runner if needed.                                                                                                                                                                                                                             |No      |string |`ubuntu-latest`      |
+|Name                      |Description                                                                                                                                                  |Required|Type   |Default              |
+|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
+|`directory`               |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                                           |No      |string |`./terraform`        |
+|`environment`             |The environment to use for the Terraform apply step. This can be used to set up extra approval before applying changes.                                      |No      |string |`github`             |
+|`extra_init_args`         |Extra arguments to pass to the 'terraform init' command.                                                                                                     |No      |string |`-lockfile=readonly` |
+|`extra_args`              |Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands.  Useful for (dynamically) injecting variable files or flags.                 |No      |string |``                   |
+|`terraform_version`       |The version of Terraform to install and use.                                                                                                                 |No      |string |`1.12.2`             |
+|`encrypted_artifact_name` |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action. |No      |string |``                   |
+|`runs-on`                 |The type of runner to use for the workflow. Defaults to 'ubuntu-latest'. You can specify a different runner if needed.                                       |No      |string |`ubuntu-latest`      |
 
 ### 🔐 Secrets
 
-|Name                         |Description                                                                                                                                                                                                                                                                                                                                                |Required|
-|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
-|`AWS_ACCESS_KEY_ID`          |AWS access key for authenticating with Terraform providers.                                                                                                                                                                                                                                                                                                |Yes     |
-|`AWS_SECRET_ACCESS_KEY`      |AWS secret key for authenticating with Terraform providers.                                                                                                                                                                                                                                                                                                |Yes     |
-|`GITHUB_APP_ID`              |GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                                                                                                                                                                             |Yes     |
-|`GITHUB_APP_INSTALLATION_ID` |GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                                                                                                                                                                |Yes     |
-|`GITHUB_APP_PEM_FILE`        |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                                                                                                                                                       |Yes     |
-|`CREDENTIAL_FILE_BASE64`     |Base64 encoded contents that will be written to the file specified by the `credential_file_path` input. You can use this to pass additional credentials required by Terraform providers. Encode the file contents using `base64` and set it as a secret in your GitHub repository. Example to encode a secret file: `echo -n "my-secret-content" | base64` |No      |
+|Name                         |Description                                                                                                                                                                                          |Required|
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+|`AWS_ACCESS_KEY_ID`          |AWS access key for authenticating with Terraform providers.                                                                                                                                          |Yes     |
+|`AWS_SECRET_ACCESS_KEY`      |AWS secret key for authenticating with Terraform providers.                                                                                                                                          |Yes     |
+|`GITHUB_APP_ID`              |GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                       |Yes     |
+|`GITHUB_APP_INSTALLATION_ID` |GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                          |Yes     |
+|`GITHUB_APP_PEM_FILE`        |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                 |Yes     |
+|`ARTIFACT_IDENTITY`          |age identity (private key) used to decrypt the encrypted artifact (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-'). Use the matching recipient public key when uploading. |No      |
 
 ### 📤 Outputs
 
@@ -72,14 +72,17 @@ jobs:
     with:
       directory: ./terraform
       terraform_version: '1.12.2'
-      extra_args: "$(../scripts/var_files.sh .)"
+      extra_args: "-var-file=vars.tfvars"
+      encrypted_artifact_name: vars
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       GITHUB_APP_ID: "1552622"
       GITHUB_APP_INSTALLATION_ID: "74918728"
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
+      ARTIFACT_IDENTITY: ${{ secrets.ARTIFACT_IDENTITY }}
 ```
+> Tip: Use the action `eidp/actions-terraform/upload-encrypted-artifact@v0` to produce the encrypted artifact that can be used in this workflow. See the action's README for usage: https://github.com/eidp/actions-terraform/tree/v0/upload-encrypted-artifact
 
 ## terraform-plan (Workflow)
 
@@ -97,25 +100,25 @@ This workflow runs the following terraform commands (in order):
 
 ### 🔧 Inputs
 
-|Name                   |Description                                                                                                                                                                                                                                                                                                                                        |Required|Type   |Default              |
-|-----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
-|`credential_file_path` |Path of the additional secret file (including filename) that will be created and filled with the contents of the `secrets.CREDENTIAL_FILE_BASE64`. The file path is relative to the working directory of the action. This input can be used to pass an additional credential file required by Terraform providers. Example value: `my-secret.yml`. |No      |string |``                   |
-|`directory`            |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                                                                                                                                                                                                                                 |No      |string |`./terraform`        |
-|`extra_args`           |Extra arguments to pass to the 'terraform plan' command.  Useful for (dynamically) injecting variable files or flags.                                                                                                                                                                                                                              |No      |string |``                   |
-|`extra_init_args`      |Extra arguments to pass to the 'terraform init' command.                                                                                                                                                                                                                                                                                           |No      |string |`-lockfile=readonly` |
-|`terraform_version`    |The version of Terraform to install and use.                                                                                                                                                                                                                                                                                                       |No      |string |`1.12.2`             |
-|`runs-on`              |The type of runner to use for the workflow. Defaults to 'ubuntu-latest'. You can specify a different runner if needed.                                                                                                                                                                                                                             |No      |string |`ubuntu-latest`      |
+|Name                      |Description                                                                                                                                                  |Required|Type   |Default              |
+|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|-------|---------------------|
+|`directory`               |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                                           |No      |string |`./terraform`        |
+|`extra_args`              |Extra arguments to pass to the 'terraform plan' command.  Useful for (dynamically) injecting variable files or flags.                                        |No      |string |``                   |
+|`extra_init_args`         |Extra arguments to pass to the 'terraform init' command.                                                                                                     |No      |string |`-lockfile=readonly` |
+|`terraform_version`       |The version of Terraform to install and use.                                                                                                                 |No      |string |`1.12.2`             |
+|`encrypted_artifact_name` |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action. |No      |string |``                   |
+|`runs-on`                 |The type of runner to use for the workflow. Defaults to 'ubuntu-latest'. You can specify a different runner if needed.                                       |No      |string |`ubuntu-latest`      |
 
 ### 🔐 Secrets
 
-|Name                         |Description                                                                                                                                                                                                                                                                                                                                                |Required|
-|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
-|`AWS_ACCESS_KEY_ID`          |AWS access key for authenticating with Terraform providers.                                                                                                                                                                                                                                                                                                |Yes     |
-|`AWS_SECRET_ACCESS_KEY`      |AWS secret key for authenticating with Terraform providers.                                                                                                                                                                                                                                                                                                |Yes     |
-|`CREDENTIAL_FILE_BASE64`     |Base64 encoded contents that will be written to the file specified by the `credential_file_path` input. You can use this to pass additional credentials required by Terraform providers. Encode the file contents using `base64` and set it as a secret in your GitHub repository. Example to encode a secret file: `echo -n "my-secret-content" | base64` |No      |
-|`GITHUB_APP_ID`              |GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                                                                                                                                                                             |Yes     |
-|`GITHUB_APP_INSTALLATION_ID` |GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                                                                                                                                                                |Yes     |
-|`GITHUB_APP_PEM_FILE`        |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                                                                                                                                                       |Yes     |
+|Name                         |Description                                                                                                                                                                                          |Required|
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+|`AWS_ACCESS_KEY_ID`          |AWS access key for authenticating with Terraform providers.                                                                                                                                          |Yes     |
+|`AWS_SECRET_ACCESS_KEY`      |AWS secret key for authenticating with Terraform providers.                                                                                                                                          |Yes     |
+|`ARTIFACT_IDENTITY`          |age identity (private key) used to decrypt the encrypted artifact (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-'). Use the matching recipient public key when uploading. |No      |
+|`GITHUB_APP_ID`              |GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                       |Yes     |
+|`GITHUB_APP_INSTALLATION_ID` |GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                          |Yes     |
+|`GITHUB_APP_PEM_FILE`        |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                 |Yes     |
 
 ### 📤 Outputs
 
@@ -141,12 +144,15 @@ jobs:
     uses: eidp/actions-terraform/.github/workflows/terraform-plan.yml@v0
     with:
       directory: ./terraform
-      terraform_version: '1.12.2'
-      extra_args: "$(../scripts/var_files.sh .)"
+      extra_args: -var-file=vars.tfvars
+      encrypted_artifact_name: vars
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       GITHUB_APP_ID: "1552622"
       GITHUB_APP_INSTALLATION_ID: "74918728"
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
+      ARTIFACT_IDENTITY: ${{ secrets.ARTIFACT_IDENTITY }}
 ```
+
+> Tip: Use the action `eidp/actions-terraform/upload-encrypted-artifact@v0` to produce the encrypted artifact that can be used in this workflow. See the action's README for usage: https://github.com/eidp/actions-terraform/tree/v0/upload-encrypted-artifact

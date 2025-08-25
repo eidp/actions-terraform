@@ -2,6 +2,17 @@
 
 This repository contains GitHub Actions and shared workflows for managing Terraform resources.
 
+<!-- BEGIN ACTIONS -->
+
+## 🛠️ GitHub Actions
+
+The following GitHub Actions are available in this repository:
+
+- [download-encrypted-artifact](download-encrypted-artifact/README.md)
+- [upload-encrypted-artifact](upload-encrypted-artifact/README.md)
+
+<!-- END ACTIONS -->
+
 <!-- BEGIN SHARED WORKFLOWS -->
 
 ## 📚 Shared Workflows
@@ -23,5 +34,3 @@ install the pre-commit hooks by running:
 ```bash
 pre-commit install
 ```
-
-
