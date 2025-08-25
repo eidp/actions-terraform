@@ -86,11 +86,7 @@ jobs:
           exit 1
         fi
         echo "recipient=$RECIPIENT" >> $GITHUB_OUTPUT
-        {
-          echo "identity<<'EOF'"
-          cat identity.txt
-          echo 'EOF'
-        } >> $GITHUB_OUTPUT
+        echo "identity=$(echo "$AGE_OUTPUT" | grep '^AGE-SECRET-KEY')" >> $GITHUB_OUTPUT
     - name: Upload encrypted artifact (age)
       id: enc
       uses: ./upload-encrypted-artifact
