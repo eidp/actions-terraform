@@ -2,9 +2,9 @@ name: download-encrypted-artifact
 description: |
   Downloads an encrypted artifact file, decrypts it and extract its contents.
 
-  This action downloads an artifact containing `archive.tar.bin`, decrypts it to `archive.tar` and extracts (untars) into the target directory.
-  - Cipher: OpenSSL symmetric cipher (default: aes-256-cbc)
-  - KDF: pbkdf2 with salt (OpenSSL default for `-pbkdf2 -salt`)
+  This action downloads an artifact containing `archive.tar.age`, decrypts it to `archive.tar` and extracts (untars) into the target directory.
+  - Encryption tool: age (https://age-encryption.org)
+  - Mode: identity (private key) decryption (X25519)
 
 author: eidp
 branding:
@@ -16,30 +16,30 @@ inputs:
     required: false
     default: ''
   artifact_name:
-    description: Name of the artifact to download that contains `archive.tar.bin`.
+    description: Name of the artifact to download that contains `archive.tar.age`.
     required: false
     default: encrypted-artifact
   encrypted_file:
-    description: Path to the encrypted archive file (archive.tar.bin). If not provided, defaults to `archive.tar.bin` in the current directory when an artifact is downloaded.
+    description: Path to the encrypted archive file (archive.tar.age). If not provided, defaults to `archive.tar.age` in the current directory when an artifact is downloaded.
     required: false
     default: ''
-  key:
-    description: Passphrase used for encryption/decryption (store as a secret).
+  identity:
+    description: age identity (private key) used for decryption. Provide the full contents (starts with `# created:` and contains a line starting with `AGE-SECRET-KEY-`). Store as a secret.
     required: true
   out_dir:
     description: Directory to extract the decrypted archive into (defaults to current working directory).
     required: false
     default: .
-  cipher:
-    description: OpenSSL cipher used (default aes-256-cbc).
-    required: false
   cleanup:
-    description: Whether to remove archive.tar and archive.tar.bin after extraction (true/false, default true).
+    description: Whether to remove archive.tar and archive.tar.age after extraction (true/false, default true).
     required: false
     default: 'true'
 runs:
   using: composite
   steps:
+  - name: Setup age
+    uses: alessiodionisi/setup-age-action@82b9aea163ade7fe23441552a514cf666b214077 # v1.3.0
+
   - name: Download encrypted archive artifact
     uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5
     with:
@@ -57,10 +57,10 @@ runs:
       fi
       cd "$WORKDIR"
 
-      KEY="${{ inputs.key }}"; OUT_DIR="${{ inputs.out_dir }}"
-      CIPHER="${{ inputs.cipher }}"; if [ -z "${CIPHER}" ]; then CIPHER=aes-256-cbc; fi
-      CLEANUP="${{ inputs.cleanup }}";
-      ENC_INPUT="${{ inputs.encrypted_file }}"; if [ -z "${ENC_INPUT}" ]; then ENC_INPUT="archive.tar.bin"; fi
+      IDENTITY_CONTENT='${{ inputs.identity }}'
+      OUT_DIR='${{ inputs.out_dir }}'
+      CLEANUP='${{ inputs.cleanup }}'
+      ENC_INPUT='${{ inputs.encrypted_file }}'; if [ -z "${ENC_INPUT}" ]; then ENC_INPUT="archive.tar.age"; fi
 
       if [ ! -f "$ENC_INPUT" ]; then
         echo "Encrypted file not found: $ENC_INPUT" >&2
@@ -70,17 +70,13 @@ runs:
       mkdir -p "$OUT_DIR"
       ARCHIVE="$OUT_DIR/archive.tar"
 
-      # Decrypt archive.tar.bin -> archive.tar
-      KEY_FILE="$(mktemp)"
-      chmod 600 "$KEY_FILE"
-      printf '%s' "$KEY" > "$KEY_FILE"
-      openssl enc -"$CIPHER" -d -pbkdf2 -pass file:"$KEY_FILE" -in "$ENC_INPUT" -out "$ARCHIVE"
-      rm -f "$KEY_FILE"
+      ID_FILE="$(mktemp)"; chmod 600 "$ID_FILE"; printf '%s\n' "$IDENTITY_CONTENT" > "$ID_FILE"
+      age -d -i "$ID_FILE" -o "$ARCHIVE" "$ENC_INPUT"
+      rm -f "$ID_FILE"
 
-      # Extract into OUT_DIR
       tar -xf "$ARCHIVE" -C "$OUT_DIR"
 
-      if [ "${CLEANUP}" = "true" ]; then
+      if [ "$CLEANUP" = "true" ]; then
         rm -f "$ARCHIVE" "$ENC_INPUT"
       fi
 

@@ -3,13 +3,13 @@
 
 This action creates an encrypted artifact.
 
-This action archives the provided paths into a file named `archive.tar`, encrypts it producing `archive.tar.bin`, and uploads the encrypted file as an artifact.
-- Cipher: OpenSSL symmetric cipher (default: aes-256-cbc)
-- KDF: pbkdf2 with salt (OpenSSL default for `-pbkdf2 -salt`)
+This action archives the provided paths into a file named `archive.tar`, encrypts it producing `archive.tar.age`, and uploads the encrypted file as an artifact.
+- Encryption tool: age (https://age-encryption.org)
+- Mode: recipient public key (X25519)
 
 Important:
-- Do NOT echo the passphrase (key). Keep it only in GitHub secrets.
-- Use the matching `download-encrypted-artifact` action to download, decrypt, and extract (untar) the archive in consumer workflows.
+- Provide an age recipient public key (age1...) via the `recipient` input.
+- Use the matching `download-encrypted-artifact` action with the corresponding private identity key to decrypt and extract.
 
 ## 🔧 Inputs
 
@@ -17,8 +17,7 @@ Important:
 |---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|--------------------|
 |  `directory`  |Directory to run the action in. Defaults to the current working directory. If provided, the action will change to this directory before creating the archive. This is where the archive will be created and encrypted.|   No   |         ``         |
 |    `paths`    |                                                        Space-separated list of files/directories to include in the archive. Globs are supported by the shell.                                                        |   Yes  |                    |
-|     `key`     |                                                                        Passphrase to use for encryption (store as a secret in your workflow).                                                                        |   Yes  |                    |
-|    `cipher`   |                                                                                         OpenSSL cipher to use for encryption.                                                                                        |   No   |    `aes-256-cbc`   |
+|  `recipient`  |                                                                                    age recipient public key (starts with age1...).                                                                                   |   Yes  |                    |
 |`artifact_name`|                                                                                            Name of the artifact to upload.                                                                                           |   No   |`encrypted-artifact`|
 
 ## 📤 Outputs

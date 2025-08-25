@@ -31,7 +31,7 @@ on:
         default: "1.12.2"
       encrypted_artifact_name:
         description: >
-          Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.bin` created by the encrypt action.
+          Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action.
         required: false
         type: string
         default: ""
@@ -61,9 +61,9 @@ on:
         description: >
           AWS secret key for authenticating with Terraform providers.
         required: true
-      ARTIFACT_KEY:
+      ARTIFACT_IDENTITY:
         description: >
-          Passphrase used to decrypt the encrypted artifact. Use the same value you provided to the encrypt action.
+          age identity (private key) used to decrypt the encrypted artifact (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-'). Use the matching recipient public key when uploading.
         required: false
       GITHUB_APP_ID:
         description: >
@@ -115,7 +115,7 @@ jobs:
       uses: eidp/actions-terraform/download-encrypted-artifact@e3e55fb3a21474b319abd875132a4af3d34b1f8c
       with:
         artifact_name: ${{ inputs.encrypted_artifact_name }}
-        key: ${{ secrets.ARTIFACT_KEY }}
+        identity: ${{ secrets.ARTIFACT_IDENTITY }}
         out_dir: "./"
 
     - name: Setup Node

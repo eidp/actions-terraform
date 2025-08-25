@@ -2,13 +2,13 @@ name: upload-encrypted-artifact
 description: |
   This action creates an encrypted artifact.
 
-  This action archives the provided paths into a file named `archive.tar`, encrypts it producing `archive.tar.bin`, and uploads the encrypted file as an artifact.
-  - Cipher: OpenSSL symmetric cipher (default: aes-256-cbc)
-  - KDF: pbkdf2 with salt (OpenSSL default for `-pbkdf2 -salt`)
+  This action archives the provided paths into a file named `archive.tar`, encrypts it producing `archive.tar.age`, and uploads the encrypted file as an artifact.
+  - Encryption tool: age (https://age-encryption.org)
+  - Mode: recipient public key (X25519)
 
   Important:
-  - Do NOT echo the passphrase (key). Keep it only in GitHub secrets.
-  - Use the matching `download-encrypted-artifact` action to download, decrypt, and extract (untar) the archive in consumer workflows.
+  - Provide an age recipient public key (age1...) via the `recipient` input.
+  - Use the matching `download-encrypted-artifact` action with the corresponding private identity key to decrypt and extract.
 
 author: eidp
 branding:
@@ -26,13 +26,9 @@ inputs:
     description: >
       Space-separated list of files/directories to include in the archive. Globs are supported by the shell.
     required: true
-  key:
-    description: Passphrase to use for encryption (store as a secret in your workflow).
+  recipient:
+    description: age recipient public key (starts with age1...).
     required: true
-  cipher:
-    description: OpenSSL cipher to use for encryption.
-    required: false
-    default: aes-256-cbc
   artifact_name:
     description: Name of the artifact to upload.
     required: false
@@ -40,13 +36,15 @@ inputs:
 runs:
   using: composite
   steps:
+  - name: Setup age
+    uses: alessiodionisi/setup-age-action@82b9aea163ade7fe23441552a514cf666b214077 # v1.3.0
+
   - id: bundle-and-encrypt
     shell: bash
     run: |
       set -euo pipefail
       : "${{ inputs.paths }}"
-      : "${{ inputs.key }}"
-      CIPHER="${{ inputs.cipher }}"; if [ -z "${CIPHER}" ]; then CIPHER=aes-256-cbc; fi
+      : "${{ inputs.recipient }}"
 
       if [ -z "${{ inputs.directory }}" ]; then
           WORKDIR="$(pwd)"
@@ -56,22 +54,20 @@ runs:
       cd "$WORKDIR"
       
       # Create archive.tar
-      rm -f archive.tar archive.tar.bin
-      # Use tar with recursion; expand the provided paths via the shell
+      rm -f archive.tar archive.tar.age
       # shellcheck disable=SC2086
-      # Safely split paths into an array to prevent code injection
       read -r -a PATHS_ARRAY <<< "${{ inputs.paths }}"
-      tar --exclude=archive.tar --exclude=archive.tar.bin -cf archive.tar "${PATHS_ARRAY[@]}"
+      tar --exclude=archive.tar --exclude=archive.tar.age -cf archive.tar "${PATHS_ARRAY[@]}"
 
-      # Encrypt archive.tar -> archive.tar.bin
-      openssl enc -"$CIPHER" -pbkdf2 -salt -pass pass:"${{ inputs.key }}" -in archive.tar -out archive.tar.bin
+      # Encrypt archive.tar -> archive.tar.age using age recipient key
+      age -r "${{ inputs.recipient }}" -o archive.tar.age archive.tar
 
-      echo "Created and encrypted archive: $(pwd)/archive.tar.bin"
+      echo "Created and encrypted archive: $(pwd)/archive.tar.age"
 
   - name: Upload encrypted archive artifact
     uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
     with:
       name: ${{ inputs.artifact_name }}
-      path: archive.tar.bin
+      path: archive.tar.age
       if-no-files-found: error
 outputs: {}
