@@ -15,6 +15,7 @@ jobs:
       directory: ./test/terraform
       terraform_version: "1.12.2"
       runs-on: kubernetes-runner
+      debug: true
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
