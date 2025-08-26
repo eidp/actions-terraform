@@ -154,7 +154,7 @@ jobs:
           export TF_LOG=DEBUG
           export TF_LOG_PATH=./terraform.log
         fi
-        terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan
+        terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
         terraform show -no-color tfplan
 
         if [ -f ./terraform.log ]; then
@@ -162,6 +162,7 @@ jobs:
           cat ./terraform.log
         fi
 
+        exit ${PLAN_EXIT_CODE:-0}
     - name: Comment on PR
       id: add-pr-comment
       if: always()
