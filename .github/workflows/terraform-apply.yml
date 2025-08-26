@@ -138,7 +138,19 @@ jobs:
 
     - name: Terraform Plan
       id: plan
-      run: terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan && terraform show -no-color tfplan
+      run: |
+        set -o pipefail
+        if [ "${{ inputs.debug }}" = "true" ]; then
+            export TF_LOG=TRACE
+            export TF_LOG_PATH=./terraform.log
+        fi
+
+        terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan && terraform show -no-color tfplan || PLAN_EXIT_CODE=$?
+
+        if [ -f ./terraform.log ]; then
+          echo "----- Terraform Debug Log -----"
+          cat ./terraform.log
+        fi
 
     - name: Upload plan artifact
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -195,4 +207,18 @@ jobs:
 
     - name: Terraform Apply
       id: apply
-      run: terraform apply ${{ inputs.extra_args }} -auto-approve -input=false -no-color tfplan
+      run: |
+        set -o pipefail
+        if [ "${{ inputs.debug }}" = "true" ]; then
+          export TF_LOG=TRACE
+          export TF_LOG_PATH=./terraform.log
+        fi
+
+        terraform apply ${{ inputs.extra_args }} -auto-approve -input=false -no-color tfplan || APPLY_EXIT_CODE=$?
+
+        if [ -f ./terraform.log ]; then
+          echo "----- Terraform Debug Log -----"
+          cat ./terraform.log
+        fi
+
+        exit ${APPLY_EXIT_CODE:-0}

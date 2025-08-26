@@ -151,7 +151,7 @@ jobs:
       run: |
         set -o pipefail
         if [ "${{ inputs.debug }}" = "true" ]; then
-          export TF_LOG=DEBUG
+          export TF_LOG=TRACE
           export TF_LOG_PATH=./terraform.log
         fi
         terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
