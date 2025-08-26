@@ -151,6 +151,7 @@ jobs:
           echo "----- Terraform Debug Log -----"
           cat ./terraform.log
         fi
+        exit ${PLAN_EXIT_CODE:-0}
 
     - name: Upload plan artifact
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
