@@ -42,6 +42,12 @@ on:
         required: false
         type: string
         default: "ubuntu-latest"
+      debug:
+        description: >
+          Enable debug mode for more verbose logging. Defaults to false.
+        required: false
+        type: boolean
+        default: false
     outputs:
       plan_outcome:
         description: |
@@ -143,9 +149,20 @@ jobs:
     - name: Terraform Plan
       id: plan
       run: |
-        terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan
+        set -o pipefail
+        if [ "${{ inputs.debug }}" = "true" ]; then
+          export TF_LOG=TRACE
+          export TF_LOG_PATH=./terraform.log
+        fi
+        terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
         terraform show -no-color tfplan
 
+        if [ -f ./terraform.log ]; then
+          echo "----- Terraform Debug Log -----"
+          cat ./terraform.log
+        fi
+
+        exit ${PLAN_EXIT_CODE:-0}
     - name: Comment on PR
       id: add-pr-comment
       if: always()
