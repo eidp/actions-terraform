@@ -118,7 +118,7 @@ jobs:
 
     - name: Download encrypted artifact
       if: ${{ inputs.encrypted_artifact_name != '' }}
-      uses: eidp/actions-terraform/download-encrypted-artifact@3b10f99ae668cf33f6c94df3ee0ca1bce39e18da # v1
+      uses: eidp/actions-terraform/download-encrypted-artifact@35000ec4990e2dfb415fc3a8e3d1a6d6a14d7a67 # v1
       with:
         artifact_name: ${{ inputs.encrypted_artifact_name }}
         identity: ${{ secrets.ARTIFACT_IDENTITY }}
