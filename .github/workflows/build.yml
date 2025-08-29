@@ -114,7 +114,7 @@ jobs:
     steps:
     - name: Check Workflow Status
       id: check-workflow-status
-      uses: eidp/actions-common/check-workflow-status@1d37ef097c48440e0d87e70b0849bfa1b09cc961 # v0
+      uses: eidp/actions-common/check-workflow-status@a0723b5b5088879f22d3dfbba92d67217f41f371 # v0
       with:
         jobs: 'plan / terraform-plan,verify-plan,apply / terraform-apply,verify-apply,test-encrypted-artifact-upload-download'
         github-token: ${{ secrets.GITHUB_TOKEN }}
