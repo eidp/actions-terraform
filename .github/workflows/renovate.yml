@@ -4,7 +4,7 @@ on:
   - cron: '0/30 * * * *'
 jobs:
   renovate:
-    uses: eidp/actions-common/.github/workflows/renovate.yml@a0723b5b5088879f22d3dfbba92d67217f41f371 # v0
+    uses: eidp/actions-common/.github/workflows/renovate.yml@42dc9e7586ba7a3b7aa74b2f235b220edf7fea44 # v0
     with:
       runs-on: dind-runner
       renovate-config-repo: renovate-config
