@@ -17,4 +17,4 @@ jobs:
 
     - name: Update Major Version Tag
       id: update_major_version_tag
-      uses: eidp/actions-common/update-major-version-tag@52d95b8e0d9514475eae8f3284b968d5ce083807 # v0
+      uses: eidp/actions-common/update-major-version-tag@52d95b8e0d9514475eae8f3284b968d5ce083807 # v0.6.0
