@@ -190,19 +190,62 @@ jobs:
           </details>
         message-failure: |
           ## Terraform Plan for Directory: `${{ inputs.directory }}`
+
+          **❌ Terraform execution failed. Please review the errors below and fix the issues before proceeding.**
+
           #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
           #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
-          #### 🤖 **Terraform Validation:** `${{ steps.validate.outcome }}`
+          #### 🤖 **Terraform Validation:**  `${{ steps.validate.outcome }}`
           #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
 
-          <details>
-            <summary><b>🔍 Show Plan Error</b></summary>
+          ${{ steps.fmt.outcome == 'failure' && format('<details>
+            <summary><b>🔴 Format Errors</b></summary>
+
+            <blockquote>
+
+          The following files are not properly formatted. Run `terraform fmt -recursive` to fix formatting issues:
+
+          ```
+          {0}
+          ```
+
+            </blockquote>
+          </details>', steps.fmt.outputs.stdout) || '' }}
+
+          ${{ steps.init.outcome == 'failure' && format('<details>
+            <summary><b>🔴 Initialization Errors</b></summary>
+
+            <blockquote>
+
+          ```
+          {0}
+          ```
+
+            </blockquote>
+          </details>', steps.init.outputs.stderr) || '' }}
+
+          ${{ steps.validate.outcome == 'failure' && format('<details>
+            <summary><b>🔴 Validation Errors</b></summary>
+
+            <blockquote>
+
+          The Terraform configuration contains validation errors that must be fixed:
+
+          ```
+          {0}
+          ```
+
+            </blockquote>
+          </details>', steps.validate.outputs.stderr) || '' }}
+
+          ${{ steps.plan.outcome == 'failure' && steps.fmt.outcome != 'failure' && steps.init.outcome != 'failure' && steps.validate.outcome != 'failure' && format('<details>
+            <summary><b>🔴 Plan Errors</b></summary>
 
             <blockquote>
 
           ```tf
-          ${{ steps.plan.outputs.stderr }}
+          {0}
           ```
 
             </blockquote>
-          </details>
+          </details>', steps.plan.outputs.stderr) || '' }}
