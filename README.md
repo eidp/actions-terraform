@@ -8,8 +8,8 @@ This repository contains GitHub Actions and shared workflows for managing Terraf
 
 The following GitHub Actions are available in this repository:
 
-- [upload-encrypted-artifact](upload-encrypted-artifact/README.md)
 - [download-encrypted-artifact](download-encrypted-artifact/README.md)
+- [upload-encrypted-artifact](upload-encrypted-artifact/README.md)
 
 <!-- END ACTIONS -->
 
