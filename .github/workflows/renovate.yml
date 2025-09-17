@@ -4,10 +4,9 @@ on:
   - cron: '0/30 * * * *'
 jobs:
   renovate:
-    uses: eidp/actions-common/.github/workflows/renovate.yml@52d95b8e0d9514475eae8f3284b968d5ce083807 # v0.6.0
+    uses: eidp/actions-common/.github/workflows/renovate.yml@0878b81861674a916b2d0b8e66db5386cc95e066 # v0.6.2
     with:
       runs-on: dind-runner
-      renovate-config-repo: renovate-config
     secrets:
       GITHUB_APP_ID: ${{ secrets.DEP_MANAGER_GITHUB_APP_ID }}
       GITHUB_APP_PEM_FILE: ${{ secrets.DEP_MANAGER_GITHUB_APP_PEM_FILE }}
