@@ -107,7 +107,7 @@ jobs:
 
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
     - name: Generate App token
       id: generate-app-token
@@ -118,19 +118,19 @@ jobs:
 
     - name: Download encrypted artifact
       if: ${{ inputs.encrypted_artifact_name != '' }}
-      uses: eidp/actions-terraform/download-encrypted-artifact@35000ec4990e2dfb415fc3a8e3d1a6d6a14d7a67 # v1
+      uses: eidp/actions-terraform/download-encrypted-artifact@35000ec4990e2dfb415fc3a8e3d1a6d6a14d7a67 # v1.1.0
       with:
         artifact_name: ${{ inputs.encrypted_artifact_name }}
         identity: ${{ secrets.ARTIFACT_IDENTITY }}
         out_dir: "./"
 
     - name: Setup Node
-      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
       with:
         node-version: '20.x'
 
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
       with:
         terraform_version: ${{ inputs.terraform_version }}
 
@@ -166,7 +166,7 @@ jobs:
     - name: Comment on PR
       id: add-pr-comment
       if: always()
-      uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2
+      uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
       with:
         repo-token: ${{ steps.generate-app-token.outputs.token }}
         message-id: ${{ inputs.directory }}
@@ -190,19 +190,62 @@ jobs:
           </details>
         message-failure: |
           ## Terraform Plan for Directory: `${{ inputs.directory }}`
+
+          **❌ Terraform execution failed. Please review the errors below and fix the issues before proceeding.**
+
           #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
           #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
-          #### 🤖 **Terraform Validation:** `${{ steps.validate.outcome }}`
+          #### 🤖 **Terraform Validation:**  `${{ steps.validate.outcome }}`
           #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
 
-          <details>
-            <summary><b>🔍 Show Plan Error</b></summary>
+          ${{ steps.fmt.outcome == 'failure' && format('<details>
+            <summary><b>🔴 Format Errors</b></summary>
+
+            <blockquote>
+
+          The following files are not properly formatted. Run `terraform fmt -recursive` to fix formatting issues:
+
+          ```
+          {0}
+          ```
+
+            </blockquote>
+          </details>', steps.fmt.outputs.stdout) || '' }}
+
+          ${{ steps.init.outcome == 'failure' && format('<details>
+            <summary><b>🔴 Initialization Errors</b></summary>
+
+            <blockquote>
+
+          ```
+          {0}
+          ```
+
+            </blockquote>
+          </details>', steps.init.outputs.stderr) || '' }}
+
+          ${{ steps.validate.outcome == 'failure' && format('<details>
+            <summary><b>🔴 Validation Errors</b></summary>
+
+            <blockquote>
+
+          The Terraform configuration contains validation errors that must be fixed:
+
+          ```
+          {0}
+          ```
+
+            </blockquote>
+          </details>', steps.validate.outputs.stderr) || '' }}
+
+          ${{ steps.plan.outcome == 'failure' && steps.fmt.outcome != 'failure' && steps.init.outcome != 'failure' && steps.validate.outcome != 'failure' && format('<details>
+            <summary><b>🔴 Plan Errors</b></summary>
 
             <blockquote>
 
           ```tf
-          ${{ steps.plan.outputs.stderr }}
+          {0}
           ```
 
             </blockquote>
-          </details>
+          </details>', steps.plan.outputs.stderr) || '' }}
