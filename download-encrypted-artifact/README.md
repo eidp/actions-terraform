@@ -9,14 +9,14 @@ This action downloads an artifact containing `archive.tar.age`, decrypts it to `
 
 ## 🔧 Inputs
 
-|      Name      |                                                                                 Description                                                                                |Required|       Default      |
-|----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|--------------------|
-|   `directory`  |                                                   Directory to run the action in (defaults to current working directory).                                                  |   No   |         ``         |
-| `artifact_name`|                                                      Name of the artifact to download that contains `archive.tar.age`.                                                     |   No   |`encrypted-artifact`|
-|`encrypted_file`|        Path to the encrypted archive file (archive.tar.age). If not provided, defaults to `archive.tar.age` in the current directory when an artifact is downloaded.       |   No   |         ``         |
-|   `identity`   |age identity (private key) used for decryption. Provide the full contents (starts with `# created:` and contains a line starting with `AGE-SECRET-KEY-`). Store as a secret.|   Yes  |                    |
-|    `out_dir`   |                                          Directory to extract the decrypted archive into (defaults to current working directory).                                          |   No   |         `.`        |
-|    `cleanup`   |                                       Whether to remove archive.tar and archive.tar.age after extraction (true/false, default true).                                       |   No   |       `true`       |
+|Name             |Description                                                                                                                                                                  |Required|Default              |
+|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|---------------------|
+|`directory`      |Directory to run the action in (defaults to current working directory).                                                                                                      |No      |``                   |
+|`artifact_name`  |Name of the artifact to download that contains `archive.tar.age`.                                                                                                            |No      |`encrypted-artifact` |
+|`encrypted_file` |Path to the encrypted archive file (archive.tar.age). If not provided, defaults to `archive.tar.age` in the current directory when an artifact is downloaded.                |No      |``                   |
+|`identity`       |age identity (private key) used for decryption. Provide the full contents (starts with `# created:` and contains a line starting with `AGE-SECRET-KEY-`). Store as a secret. |Yes     |                     |
+|`out_dir`        |Directory to extract the decrypted archive into (defaults to current working directory).                                                                                     |No      |`.`                  |
+|`cleanup`        |Whether to remove archive.tar and archive.tar.age after extraction (true/false, default true).                                                                               |No      |`true`               |
 
 ## 📤 Outputs
 
