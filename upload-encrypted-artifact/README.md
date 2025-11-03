@@ -13,12 +13,12 @@ Important:
 
 ## 🔧 Inputs
 
-|      Name     |                                                                                                      Description                                                                                                     |Required|       Default      |
-|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|--------------------|
-|  `directory`  |Directory to run the action in. Defaults to the current working directory. If provided, the action will change to this directory before creating the archive. This is where the archive will be created and encrypted.|   No   |         ``         |
-|    `paths`    |                                                        Space-separated list of files/directories to include in the archive. Globs are supported by the shell.                                                        |   Yes  |                    |
-|  `recipient`  |                                                                                    age recipient public key (starts with age1...).                                                                                   |   Yes  |                    |
-|`artifact_name`|                                                                                            Name of the artifact to upload.                                                                                           |   No   |`encrypted-artifact`|
+|Name            |Description                                                                                                                                                                                                            |Required|Default              |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|---------------------|
+|`directory`     |Directory to run the action in. Defaults to the current working directory. If provided, the action will change to this directory before creating the archive. This is where the archive will be created and encrypted. |No      |``                   |
+|`paths`         |Space-separated list of files/directories to include in the archive. Globs are supported by the shell.                                                                                                                 |Yes     |                     |
+|`recipient`     |age recipient public key (starts with age1...).                                                                                                                                                                        |Yes     |                     |
+|`artifact_name` |Name of the artifact to upload.                                                                                                                                                                                        |No      |`encrypted-artifact` |
 
 ## 📤 Outputs
 
