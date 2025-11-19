@@ -13,7 +13,7 @@ jobs:
     uses: ./.github/workflows/terraform-plan.yml
     with:
       directory: ./test/terraform
-      terraform_version: "1.13.5"
+      terraform_version: "1.14.0"
       runs-on: kubernetes-runner
       debug: true
     secrets:
@@ -40,7 +40,7 @@ jobs:
     uses: ./.github/workflows/terraform-apply.yml
     with:
       directory: ./test/terraform
-      terraform_version: "1.13.5"
+      terraform_version: "1.14.0"
       environment: ''
       runs-on: kubernetes-runner
     secrets:
