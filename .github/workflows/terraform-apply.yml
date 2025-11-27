@@ -25,7 +25,7 @@ on:
         default: "-lockfile=readonly"
       extra_args:
         description: >
-          Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands. 
+          Extra arguments to pass to the 'terraform plan' and 'terraform apply' commands.
           Useful for (dynamically) injecting variable files or flags.
         required: false
         type: string
@@ -49,6 +49,12 @@ on:
         required: false
         type: string
         default: "ubuntu-latest"
+      debug:
+        description: >
+          Enable debug mode for more verbose logging. Defaults to false.
+        required: false
+        type: boolean
+        default: false
 
     secrets:
       AWS_ACCESS_KEY_ID:
@@ -75,6 +81,7 @@ on:
         description: >
           age identity (private key) used to decrypt the encrypted artifact (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-'). Use the matching recipient public key when uploading.
         required: false
+
     outputs:
       apply_outcome:
         description: |
@@ -85,79 +92,30 @@ on:
           The output of the Terraform apply step.
         value: ${{ jobs.apply.outputs.apply_output }}
 
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  GITHUB_APP_ID: ${{ secrets.GITHUB_APP_ID }}
-  GITHUB_APP_INSTALLATION_ID: ${{ secrets.GITHUB_APP_INSTALLATION_ID }}
-  GITHUB_APP_PEM_FILE: ${{ secrets.GITHUB_APP_PEM_FILE }}
-
 jobs:
   plan:
     name: terraform-plan
     runs-on: ${{ inputs.runs-on }}
+
     outputs:
-      plan-id: ${{ steps.generate-plan-id.outputs.plan-id }}
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ inputs.directory }}
+      plan_artifact_name: ${{ steps.plan.outputs.plan_artifact_name }}
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-
-    - name: Generate random plan ID
-      id: generate-plan-id
-      run: |
-        PLAN_ID=$(echo $RANDOM | md5sum | cut -c1-8)
-        echo "PLAN_ID=$PLAN_ID" >> $GITHUB_ENV
-        echo "plan-id=$PLAN_ID" >> $GITHUB_OUTPUT
-
-    - name: Download encrypted artifact
-      if: ${{ inputs.encrypted_artifact_name != '' }}
-      uses: eidp/actions-terraform/download-encrypted-artifact@b98cb7878f82a41977fab8f6d387006017796e5f # v1.2.0
-      with:
-        artifact_name: ${{ inputs.encrypted_artifact_name }}
-        identity: ${{ secrets.ARTIFACT_IDENTITY }}
-        out_dir: "./"
-
-    - name: Setup Node
-      uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
-      with:
-        node-version: '20.x'
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.8.2
-      with:
-        terraform_version: ${{ inputs.terraform_version }}
-
-    - name: Terraform Init
-      id: init
-      run: terraform init ${{ inputs.extra_init_args }} -input=false
-
     - name: Terraform Plan
       id: plan
-      run: |
-        set -o pipefail
-        if [ "${{ inputs.debug }}" = "true" ]; then
-            export TF_LOG=TRACE
-            export TF_LOG_PATH=./terraform.log
-        fi
-
-        terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan && terraform show -no-color tfplan || PLAN_EXIT_CODE=$?
-
-        if [ -f ./terraform.log ]; then
-          echo "----- Terraform Debug Log -----"
-          cat ./terraform.log
-        fi
-        exit ${PLAN_EXIT_CODE:-0}
-
-    - name: Upload plan artifact
-      uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+      uses: eidp/actions-terraform/plan-for-apply@8db532a213be5d7b09607b87c120f1848f4e63bd
       with:
-        name: tfplan-${{ env.PLAN_ID }}
-        path: ${{ inputs.directory }}/tfplan
+        directory: ${{ inputs.directory }}
+        extra_args: ${{ inputs.extra_args }}
+        extra_init_args: ${{ inputs.extra_init_args }}
+        terraform_version: ${{ inputs.terraform_version }}
+        encrypted_artifact_name: ${{ inputs.encrypted_artifact_name }}
+        artifact_identity: ${{ secrets.ARTIFACT_IDENTITY }}
+        debug: ${{ inputs.debug }}
 
   apply:
     needs: [plan]
@@ -165,61 +123,25 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     environment: ${{ inputs.environment }}
     concurrency: ${{ inputs.environment }}-apply
-    outputs:
-      apply_outcome: ${{ steps.apply.outcome }}
-      apply_output: ${{ steps.apply.outputs.stdout }}
 
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ inputs.directory }}
+    outputs:
+      apply_outcome: ${{ steps.apply.outputs.apply_outcome }}
+      apply_output: ${{ steps.apply.outputs.apply_output }}
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-
-    - name: Download encrypted artifact
-      if: ${{ inputs.encrypted_artifact_name != '' }}
-      uses: eidp/actions-terraform/download-encrypted-artifact@b98cb7878f82a41977fab8f6d387006017796e5f # v1.2.0
-      with:
-        artifact_name: ${{ inputs.encrypted_artifact_name }}
-        identity: ${{ secrets.ARTIFACT_IDENTITY }}
-        out_dir: "./"
-
-    - name: Setup Node
-      uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
-      with:
-        node-version: '20.x'
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-      with:
-        terraform_version: ${{ inputs.terraform_version }}
-
-    - name: Terraform Init
-      id: init
-      run: terraform init ${{ inputs.extra_init_args }} -input=false
-
-    - name: Download plan artifact
-      uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
-      with:
-        name: tfplan-${{ needs.plan.outputs.plan-id }}
-        path: ${{ inputs.directory }}
-
     - name: Terraform Apply
       id: apply
-      run: |
-        set -o pipefail
-        if [ "${{ inputs.debug }}" = "true" ]; then
-          export TF_LOG=TRACE
-          export TF_LOG_PATH=./terraform.log
-        fi
-
-        terraform apply ${{ inputs.extra_args }} -auto-approve -input=false -no-color tfplan || APPLY_EXIT_CODE=$?
-
-        if [ -f ./terraform.log ]; then
-          echo "----- Terraform Debug Log -----"
-          cat ./terraform.log
-        fi
-
-        exit ${APPLY_EXIT_CODE:-0}
+      uses: eidp/actions-terraform/apply@8db532a213be5d7b09607b87c120f1848f4e63bd
+      with:
+        directory: ${{ inputs.directory }}
+        extra_args: ${{ inputs.extra_args }}
+        extra_init_args: ${{ inputs.extra_init_args }}
+        terraform_version: ${{ inputs.terraform_version }}
+        encrypted_artifact_name: ${{ inputs.encrypted_artifact_name }}
+        artifact_identity: ${{ secrets.ARTIFACT_IDENTITY }}
+        debug: ${{ inputs.debug }}
+        plan_artifact_name: ${{ needs.plan.outputs.plan_artifact_name }}
