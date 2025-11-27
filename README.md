@@ -1,15 +1,13 @@
-# Terraform Actions and Workflows
-
-This repository contains GitHub Actions and shared workflows for managing Terraform resources.
-
 <!-- BEGIN ACTIONS -->
 
 ## 🛠️ GitHub Actions
 
 The following GitHub Actions are available in this repository:
 
+- [apply](apply/README.md)
 - [download-encrypted-artifact](download-encrypted-artifact/README.md)
 - [plan](plan/README.md)
+- [plan-for-apply](plan-for-apply/README.md)
 - [upload-encrypted-artifact](upload-encrypted-artifact/README.md)
 
 <!-- END ACTIONS -->
@@ -24,14 +22,3 @@ The following reusable workflows are available in this repository:
 - [terraform-plan](./.github/workflows/README.md#terraform-plan-workflow)
 
 <!-- END SHARED WORKFLOWS -->
-
-## Development
-
-### Pre-commit hooks
-
-To ensure code quality and consistency, this repository uses [pre-commit](https://pre-commit.com/) hooks. Make sure to
-install the pre-commit hooks by running:
-
-```bash
-pre-commit install
-```
