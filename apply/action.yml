@@ -57,6 +57,13 @@ inputs:
       Enable debug mode for more verbose logging. Defaults to false.
     required: false
     default: 'false'
+  command_wrapper:
+    description: >
+      Optional command wrapper to prefix terraform commands with.
+      Useful for credential injection tools like 1Password CLI (op run --)
+      or AWS Vault (aws-vault exec profile --).
+    required: false
+    default: ''
   plan_artifact_name:
     description: >
       Name of the plan artifact to download. This should be the
@@ -101,7 +108,7 @@ runs:
     id: init
     shell: bash
     working-directory: ${{ inputs.directory }}
-    run: terraform init ${{ inputs.extra_init_args }} -input=false
+    run: ${{ inputs.command_wrapper }} terraform init ${{ inputs.extra_init_args }} -input=false
 
   - name: Download plan artifact
     uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
@@ -120,7 +127,7 @@ runs:
         export TF_LOG_PATH=./terraform.log
       fi
 
-      terraform apply ${{ inputs.extra_args }} -auto-approve -input=false -no-color tfplan || APPLY_EXIT_CODE=$?
+      ${{ inputs.command_wrapper }} terraform apply ${{ inputs.extra_args }} -auto-approve -input=false -no-color tfplan || APPLY_EXIT_CODE=$?
 
       if [ -f ./terraform.log ]; then
         echo "----- Terraform Debug Log -----"

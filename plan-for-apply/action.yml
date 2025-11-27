@@ -57,6 +57,13 @@ inputs:
       Enable debug mode for more verbose logging. Defaults to false.
     required: false
     default: 'false'
+  command_wrapper:
+    description: >
+      Optional command wrapper to prefix terraform commands with.
+      Useful for credential injection tools like 1Password CLI (op run --)
+      or AWS Vault (aws-vault exec profile --).
+    required: false
+    default: ''
 
 outputs:
   plan_artifact_name:
@@ -106,7 +113,7 @@ runs:
     id: init
     shell: bash
     working-directory: ${{ inputs.directory }}
-    run: terraform init ${{ inputs.extra_init_args }} -input=false
+    run: ${{ inputs.command_wrapper }} terraform init ${{ inputs.extra_init_args }} -input=false
 
   - name: Terraform Plan
     id: plan
@@ -119,8 +126,8 @@ runs:
         export TF_LOG_PATH=./terraform.log
       fi
 
-      terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
-      terraform show -no-color tfplan
+      ${{ inputs.command_wrapper }} terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
+      ${{ inputs.command_wrapper }} terraform show -no-color tfplan
 
       if [ -f ./terraform.log ]; then
         echo "----- Terraform Debug Log -----"

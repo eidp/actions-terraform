@@ -23,6 +23,7 @@ AWS credentials should be set as environment variables by the calling workflow.
 |`encrypted_artifact_name` |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action.                                         |No      |``                   |
 |`artifact_identity`       |age identity (private key) used to decrypt the encrypted artifact (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-'). Use the matching recipient public key when uploading. |No      |``                   |
 |`debug`                   |Enable debug mode for more verbose logging. Defaults to false.                                                                                                                                       |No      |`false`              |
+|`command_wrapper`         |Optional command wrapper to prefix terraform commands with. Useful for credential injection tools like 1Password CLI (op run --) or AWS Vault (aws-vault exec profile --).                           |No      |``                   |
 |`plan_artifact_name`      |Name of the plan artifact to download. This should be the `plan_artifact_name` output from the `plan-for-apply` action.                                                                              |Yes     |                     |
 
 ## 📤 Outputs
