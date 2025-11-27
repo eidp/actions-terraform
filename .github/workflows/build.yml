@@ -9,7 +9,7 @@ on:
     - main
 
 jobs:
-  plan:
+  test-plan-reusable-workflow:
     uses: ./.github/workflows/terraform-plan.yml
     with:
       directory: ./test/terraform
@@ -23,20 +23,20 @@ jobs:
       GITHUB_APP_INSTALLATION_ID: "74918728"
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
 
-  verify-plan:
+  verify-test-plan-reusable-workflow:
     runs-on: kubernetes-runner
-    needs: plan
+    needs: test-plan-reusable-workflow
     steps:
     - name: verify-terraform-plan
       run: |
-        if [ "${{ needs.plan.outputs.plan_outcome }}" != "success" ]; then
+        if [ "${{ needs.test-plan-reusable-workflow.outputs.plan_outcome }}" != "success" ]; then
           echo "Terraform plan failed."
           exit 1
         fi
         echo "Terraform plan succeeded."
-        echo "${{ needs.plan.outputs.plan_output }}"
+        echo "${{ needs.test-plan-reusable-workflow.outputs.plan_output }}"
 
-  apply:
+  test-apply-reusable-workflow:
     uses: ./.github/workflows/terraform-apply.yml
     with:
       directory: ./test/terraform
@@ -50,18 +50,107 @@ jobs:
       GITHUB_APP_INSTALLATION_ID: "74918728"
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
 
-  verify-apply:
+  verify-test-apply-reusable-workflow:
     runs-on: kubernetes-runner
-    needs: apply
+    needs: test-apply-reusable-workflow
     steps:
     - name: verify-terraform-apply
       run: |
-        if [ "${{ needs.apply.outputs.apply_outcome }}" != "success" ]; then
+        if [ "${{ needs.test-apply-reusable-workflow.outputs.apply_outcome }}" != "success" ]; then
           echo "Terraform apply failed."
           exit 1
         fi
         echo "Terraform apply succeeded."
-        echo "${{ needs.apply.outputs.apply_output }}"
+        echo "${{ needs.test-apply-reusable-workflow.outputs.apply_output }}"
+
+  test-plan:
+    runs-on: kubernetes-runner
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    outputs:
+      plan_outcome: ${{ steps.plan.outputs.plan_outcome }}
+      plan_output: ${{ steps.plan.outputs.plan_output }}
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+    - name: Test plan
+      id: plan
+      uses: ./plan
+      with:
+        directory: ./test/terraform
+        terraform_version: "1.14.0"
+        debug: true
+        github_app_id: "1552622"
+        github_app_installation_id: "74918728"
+        github_app_pem_file: ${{ secrets.GH_APP_PEM_FILE }}
+
+  verify-test-plan:
+    runs-on: kubernetes-runner
+    needs: test-plan
+    steps:
+    - name: Verify plan outcome
+      run: |
+        if [ "${{ needs.test-plan.outputs.plan_outcome }}" != "success" ]; then
+          echo "plan failed."
+          exit 1
+        fi
+        echo "plan succeeded."
+        echo "${{ needs.test-plan.outputs.plan_output }}"
+
+  test-plan-for-apply-and-apply:
+    runs-on: kubernetes-runner
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    outputs:
+      plan_artifact_name: ${{ steps.plan.outputs.plan_artifact_name }}
+      plan_outcome: ${{ steps.plan.outputs.plan_outcome }}
+      apply_outcome: ${{ steps.apply.outputs.apply_outcome }}
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+    - name: Test plan-for-apply
+      id: plan
+      uses: ./plan-for-apply
+      with:
+        directory: ./test/terraform
+        terraform_version: "1.14.0"
+        debug: true
+    - name: Verify plan artifact name output
+      run: |
+        if [ -z "${{ steps.plan.outputs.plan_artifact_name }}" ]; then
+          echo "plan_artifact_name output is empty"
+          exit 1
+        fi
+        echo "plan_artifact_name: ${{ steps.plan.outputs.plan_artifact_name }}"
+    - name: Test apply
+      id: apply
+      uses: ./apply
+      with:
+        directory: ./test/terraform
+        terraform_version: "1.14.0"
+        plan_artifact_name: ${{ steps.plan.outputs.plan_artifact_name }}
+        debug: true
+
+  verify-plan-for-apply-and-apply:
+    runs-on: kubernetes-runner
+    needs: test-plan-for-apply-and-apply
+    steps:
+    - name: Verify plan-for-apply outcome
+      run: |
+        if [ "${{ needs.test-plan-for-apply-and-apply.outputs.plan_outcome }}" != "success" ]; then
+          echo "plan-for-apply failed."
+          exit 1
+        fi
+        echo "plan-for-apply succeeded."
+    - name: Verify apply outcome
+      run: |
+        if [ "${{ needs.test-plan-for-apply-and-apply.outputs.apply_outcome }}" != "success" ]; then
+          echo "apply failed."
+          exit 1
+        fi
+        echo "apply succeeded."
 
   test-encrypted-artifact-upload-download:
     runs-on: kubernetes-runner
