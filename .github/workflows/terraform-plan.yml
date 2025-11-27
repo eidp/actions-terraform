@@ -28,7 +28,7 @@ on:
           The version of Terraform to install and use.
         required: false
         type: string
-        default: "1.12.2"
+        default: "1.14.0"
       encrypted_artifact_name:
         description: >
           Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action.
