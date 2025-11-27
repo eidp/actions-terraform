@@ -31,7 +31,6 @@ AWS credentials should be set as environment variables by the calling workflow.
 |---------------------|-----------------------------------------------------------------------------------------------------------------|
 |`plan_artifact_name` |The name of the uploaded plan artifact. Use this value as the `plan_artifact_name` input for the `apply` action. |
 |`plan_outcome`       |The outcome of the Terraform plan step (success or failure).                                                     |
-|`plan_has_changes`   |Whether the Terraform plan has changes or not.                                                                   |
 
 ## 🚀 Usage
 
