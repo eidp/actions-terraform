@@ -30,11 +30,10 @@ AWS credentials should be set as environment variables by the calling workflow.
 
 ## 📤 Outputs
 
-|Name               |Description                                                  |
-|-------------------|-------------------------------------------------------------|
-|`plan_outcome`     |The outcome of the Terraform plan step (success or failure). |
-|`plan_output`      |The output of the Terraform plan command.                    |
-|`plan_has_changes` |Whether the Terraform plan has changes or not.               |
+|Name           |Description                                                  |
+|---------------|-------------------------------------------------------------|
+|`plan_outcome` |The outcome of the Terraform plan step (success or failure). |
+|`plan_output`  |The output of the Terraform plan command.                    |
 
 ## 🚀 Usage
 
