@@ -59,9 +59,10 @@ inputs:
     default: 'false'
   command_wrapper:
     description: >
-      Optional command wrapper to prefix terraform commands with.
-      Useful for credential injection tools like 1Password CLI (op run --)
-      or AWS Vault (aws-vault exec profile --).
+      Optional command to wrap terraform commands with.
+      Useful for credential injection tools like 1Password CLI (op run)
+      or AWS Vault (aws-vault exec profile). Commands are executed as
+      `[your_command] -- terraform [operation]`.
     required: false
     default: ''
 
@@ -113,7 +114,12 @@ runs:
     id: init
     shell: bash
     working-directory: ${{ inputs.directory }}
-    run: ${{ inputs.command_wrapper }} terraform init ${{ inputs.extra_init_args }} -input=false
+    run: |
+      if [ -n "${{ inputs.command_wrapper }}" ]; then
+        ${{ inputs.command_wrapper }} -- terraform init ${{ inputs.extra_init_args }} -input=false
+      else
+        terraform init ${{ inputs.extra_init_args }} -input=false
+      fi
 
   - name: Terraform Plan
     id: plan
@@ -126,8 +132,13 @@ runs:
         export TF_LOG_PATH=./terraform.log
       fi
 
-      ${{ inputs.command_wrapper }} terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
-      ${{ inputs.command_wrapper }} terraform show -no-color tfplan
+      if [ -n "${{ inputs.command_wrapper }}" ]; then
+        ${{ inputs.command_wrapper }} -- terraform plan -input=false -no-color -detailed-exitcode ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
+        ${{ inputs.command_wrapper }} -- terraform show -no-color tfplan
+      else
+        terraform plan -input=false -no-color -detailed-exitcode ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
+        terraform show -no-color tfplan
+      fi
 
       if [ -f ./terraform.log ]; then
         echo "----- Terraform Debug Log -----"

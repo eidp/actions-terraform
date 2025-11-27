@@ -14,26 +14,27 @@ AWS credentials should be set as environment variables by the calling workflow.
 
 ## 🔧 Inputs
 
-|Name                         |Description                                                                                                                                                                                          |Required|Default              |
-|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|---------------------|
-|`directory`                  |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                                                                                   |No      |`./terraform`        |
-|`extra_args`                 |Extra arguments to pass to the 'terraform plan' command. Useful for (dynamically) injecting variable files or flags.                                                                                 |No      |``                   |
-|`extra_init_args`            |Extra arguments to pass to the 'terraform init' command.                                                                                                                                             |No      |`-lockfile=readonly` |
-|`terraform_version`          |The version of Terraform to install and use.                                                                                                                                                         |No      |`1.12.2`             |
-|`encrypted_artifact_name`    |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action.                                         |No      |``                   |
-|`artifact_identity`          |age identity (private key) used to decrypt the encrypted artifact (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-'). Use the matching recipient public key when uploading. |No      |``                   |
-|`debug`                      |Enable debug mode for more verbose logging. Defaults to false.                                                                                                                                       |No      |`false`              |
-|`command_wrapper`            |Optional command wrapper to prefix terraform commands with. Useful for credential injection tools like 1Password CLI (op run --) or AWS Vault (aws-vault exec profile --).                           |No      |``                   |
-|`github_app_id`              |GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                       |Yes     |                     |
-|`github_app_installation_id` |GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                          |Yes     |                     |
-|`github_app_pem_file`        |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                 |Yes     |                     |
+|Name                         |Description                                                                                                                                                                                                                    |Required|Default              |
+|-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|---------------------|
+|`directory`                  |Path to the directory containing Terraform configuration. Defaults to ./terraform.                                                                                                                                             |No      |`./terraform`        |
+|`extra_args`                 |Extra arguments to pass to the 'terraform plan' command. Useful for (dynamically) injecting variable files or flags.                                                                                                           |No      |``                   |
+|`extra_init_args`            |Extra arguments to pass to the 'terraform init' command.                                                                                                                                                                       |No      |`-lockfile=readonly` |
+|`terraform_version`          |The version of Terraform to install and use.                                                                                                                                                                                   |No      |`1.12.2`             |
+|`encrypted_artifact_name`    |Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action.                                                                   |No      |``                   |
+|`artifact_identity`          |age identity (private key) used to decrypt the encrypted artifact (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-'). Use the matching recipient public key when uploading.                           |No      |``                   |
+|`debug`                      |Enable debug mode for more verbose logging. Defaults to false.                                                                                                                                                                 |No      |`false`              |
+|`command_wrapper`            |Optional command to wrap terraform commands with. Useful for credential injection tools like 1Password CLI (op run) or AWS Vault (aws-vault exec profile). Commands are executed as `[your_command] -- terraform [operation]`. |No      |``                   |
+|`github_app_id`              |GitHub App ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                                                 |Yes     |                     |
+|`github_app_installation_id` |GitHub App Installation ID used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                                    |Yes     |                     |
+|`github_app_pem_file`        |GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.                                                                                                           |Yes     |                     |
 
 ## 📤 Outputs
 
-|Name           |Description                                                  |
-|---------------|-------------------------------------------------------------|
-|`plan_outcome` |The outcome of the Terraform plan step (success or failure). |
-|`plan_output`  |The output of the Terraform plan command.                    |
+|Name               |Description                                                  |
+|-------------------|-------------------------------------------------------------|
+|`plan_outcome`     |The outcome of the Terraform plan step (success or failure). |
+|`plan_output`      |The output of the Terraform plan command.                    |
+|`plan_has_changes` |Whether the Terraform plan has changes or not.               |
 
 ## 🚀 Usage
 
