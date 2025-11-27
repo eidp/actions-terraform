@@ -38,7 +38,7 @@ AWS credentials should be set as environment variables by the calling workflow.
 
 ```yaml
 - name: terraform-plan
-  uses: eidp/actions-terraform/terraform-plan@v0
+  uses: eidp/actions-terraform/plan@v0
   with:
     # your inputs here
 ```
