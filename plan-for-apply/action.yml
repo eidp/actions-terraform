@@ -1,0 +1,155 @@
+name: plan-for-apply
+description: |
+  Runs a minimal Terraform plan and uploads the plan file as an artifact.
+
+  This action is designed to be used in a two-job apply workflow where:
+  1. This action runs in the first job to create and upload a plan
+  2. The `apply` action runs in a second job (with environment approval) to apply the plan
+
+  Unlike the full `plan` action, this does not include formatting checks,
+  validation, or PR commenting - it's purely functional for the apply workflow.
+
+  AWS credentials should be set as environment variables by the calling workflow.
+
+author: eidp
+branding:
+  icon: file-plus
+  color: blue
+
+inputs:
+  directory:
+    description: >
+      Path to the directory containing Terraform configuration.
+      Defaults to ./terraform.
+    required: false
+    default: ./terraform
+  extra_args:
+    description: >
+      Extra arguments to pass to the 'terraform plan' command.
+      Useful for (dynamically) injecting variable files or flags.
+    required: false
+    default: ''
+  extra_init_args:
+    description: >
+      Extra arguments to pass to the 'terraform init' command.
+    required: false
+    default: -lockfile=readonly
+  terraform_version:
+    description: >
+      The version of Terraform to install and use.
+    required: false
+    default: '1.14.0'
+  encrypted_artifact_name:
+    description: >
+      Name of the encrypted artifact to download. The artifact must contain
+      a single file named `archive.tar.age` created by the upload-encrypted-artifact action.
+    required: false
+    default: ''
+  artifact_identity:
+    description: >
+      age identity (private key) used to decrypt the encrypted artifact
+      (full contents starting with '# created:' and containing 'AGE-SECRET-KEY-').
+      Use the matching recipient public key when uploading.
+    required: false
+    default: ''
+  debug:
+    description: >
+      Enable debug mode for more verbose logging. Defaults to false.
+    required: false
+    default: 'false'
+  command_wrapper:
+    description: >
+      Optional command to wrap terraform commands with.
+      Useful for credential injection tools like 1Password CLI (op run)
+      or AWS Vault (aws-vault exec profile). Commands are executed as
+      `[your_command] -- terraform [operation]`.
+    required: false
+    default: ''
+
+outputs:
+  plan_artifact_name:
+    description: |
+      The name of the uploaded plan artifact. Use this value as the
+      `plan_artifact_name` input for the `apply` action.
+    value: ${{ steps.generate-plan-id.outputs.plan_artifact_name }}
+  plan_outcome:
+    description: |
+      The outcome of the Terraform plan step (success or failure).
+    value: ${{ steps.plan.outcome }}
+
+runs:
+  using: composite
+  steps:
+  - name: Checkout Repo
+    uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+  - name: Generate plan ID
+    id: generate-plan-id
+    shell: bash
+    run: |
+      PLAN_ID=$(echo $RANDOM | md5sum | cut -c1-8)
+      PLAN_ARTIFACT_NAME="tfplan-${PLAN_ID}"
+      echo "plan_id=$PLAN_ID" >> $GITHUB_OUTPUT
+      echo "plan_artifact_name=$PLAN_ARTIFACT_NAME" >> $GITHUB_OUTPUT
+
+  - name: Download encrypted artifact
+    if: ${{ inputs.encrypted_artifact_name != '' }}
+    uses: eidp/actions-terraform/download-encrypted-artifact@b98cb7878f82a41977fab8f6d387006017796e5f # v1.2.0
+    with:
+      artifact_name: ${{ inputs.encrypted_artifact_name }}
+      identity: ${{ inputs.artifact_identity }}
+      out_dir: './'
+
+  - name: Setup Node
+    uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+    with:
+      node-version: '20.x'
+
+  - name: Setup Terraform
+    uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.8.2
+    with:
+      terraform_version: ${{ inputs.terraform_version }}
+
+  - name: Terraform Init
+    id: init
+    shell: bash
+    working-directory: ${{ inputs.directory }}
+    run: |
+      if [ -n "${{ inputs.command_wrapper }}" ]; then
+        ${{ inputs.command_wrapper }} -- terraform init ${{ inputs.extra_init_args }} -input=false
+      else
+        terraform init ${{ inputs.extra_init_args }} -input=false
+      fi
+
+  - name: Terraform Plan
+    id: plan
+    shell: bash
+    working-directory: ${{ inputs.directory }}
+    run: |
+      set -o pipefail
+      if [ "${{ inputs.debug }}" = "true" ]; then
+        export TF_LOG=TRACE
+        export TF_LOG_PATH=./terraform.log
+      fi
+
+      if [ -n "${{ inputs.command_wrapper }}" ]; then
+        ${{ inputs.command_wrapper }} -- terraform plan -input=false -no-color -detailed-exitcode ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
+        ${{ inputs.command_wrapper }} -- terraform show -no-color tfplan
+      else
+        terraform plan -input=false -no-color -detailed-exitcode ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
+        terraform show -no-color tfplan
+      fi
+
+      if [ -f ./terraform.log ]; then
+        echo "----- Terraform Debug Log -----"
+        cat ./terraform.log
+      fi
+
+      exit ${PLAN_EXIT_CODE:-0}
+
+  - name: Upload plan artifact
+    uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+    with:
+      name: ${{ steps.generate-plan-id.outputs.plan_artifact_name }}
+      path: ${{ inputs.directory }}/tfplan
+      if-no-files-found: error

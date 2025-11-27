@@ -12,7 +12,7 @@ on:
         default: "./terraform"
       extra_args:
         description: >
-          Extra arguments to pass to the 'terraform plan' command. 
+          Extra arguments to pass to the 'terraform plan' command.
           Useful for (dynamically) injecting variable files or flags.
         required: false
         type: string
@@ -28,7 +28,7 @@ on:
           The version of Terraform to install and use.
         required: false
         type: string
-        default: "1.12.2"
+        default: "1.14.0"
       encrypted_artifact_name:
         description: >
           Name of the encrypted artifact to download. The artifact must contain a single file named `archive.tar.age` created by the upload-encrypted-artifact action.
@@ -48,6 +48,14 @@ on:
         required: false
         type: boolean
         default: false
+      command_wrapper:
+        description: >
+          Optional command wrapper to prefix terraform commands with.
+          Useful for credential injection tools like 1Password CLI (op run --)
+          or AWS Vault (aws-vault exec profile --).
+        required: false
+        type: string
+        default: ""
     outputs:
       plan_outcome:
         description: |
@@ -84,168 +92,35 @@ on:
           GitHub App private key (PEM format) used by Terraform to authenticate with the GitHub API and for commenting on PRs.
         required: true
 
-env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  GITHUB_APP_ID: ${{ secrets.GITHUB_APP_ID }}
-  GITHUB_APP_INSTALLATION_ID: ${{ secrets.GITHUB_APP_INSTALLATION_ID }}
-  GITHUB_APP_PEM_FILE: ${{ secrets.GITHUB_APP_PEM_FILE }}
-
 jobs:
   plan:
     name: terraform-plan
     runs-on: ${{ inputs.runs-on }}
 
     outputs:
-      plan_outcome: ${{ steps.plan.outcome }}
-      plan_output: ${{ steps.plan.outputs.stdout }}
+      plan_outcome: ${{ steps.terraform-plan.outputs.plan_outcome }}
+      plan_output: ${{ steps.terraform-plan.outputs.plan_output }}
 
-    defaults:
-      run:
-        shell: bash
-        working-directory: ${{ inputs.directory }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      GITHUB_APP_ID: ${{ secrets.GITHUB_APP_ID }}
+      GITHUB_APP_INSTALLATION_ID: ${{ secrets.GITHUB_APP_INSTALLATION_ID }}
+      GITHUB_APP_PEM_FILE: ${{ secrets.GITHUB_APP_PEM_FILE }}
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-
-    - name: Generate App token
-      id: generate-app-token
-      uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2.2.0
-      with:
-        app-id: ${{ secrets.GITHUB_APP_ID }}
-        private-key: ${{ secrets.GITHUB_APP_PEM_FILE }}
-
-    - name: Download encrypted artifact
-      if: ${{ inputs.encrypted_artifact_name != '' }}
-      uses: eidp/actions-terraform/download-encrypted-artifact@b98cb7878f82a41977fab8f6d387006017796e5f # v1.2.0
-      with:
-        artifact_name: ${{ inputs.encrypted_artifact_name }}
-        identity: ${{ secrets.ARTIFACT_IDENTITY }}
-        out_dir: "./"
-
-    - name: Setup Node
-      uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
-      with:
-        node-version: '20.x'
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
-      with:
-        terraform_version: ${{ inputs.terraform_version }}
-
-    - name: Terraform Init
-      id: init
-      run: terraform init ${{ inputs.extra_init_args }} -input=false
-
-    - name: Terraform Format
-      id: fmt
-      run: terraform fmt -recursive -check
-
-    - name: Terraform Validate
-      id: validate
-      run: terraform validate -no-color
-
     - name: Terraform Plan
-      id: plan
-      run: |
-        set -o pipefail
-        if [ "${{ inputs.debug }}" = "true" ]; then
-          export TF_LOG=TRACE
-          export TF_LOG_PATH=./terraform.log
-        fi
-        terraform plan -input=false -no-color ${{ inputs.extra_args }} -out=tfplan || PLAN_EXIT_CODE=$?
-        terraform show -no-color tfplan
-
-        if [ -f ./terraform.log ]; then
-          echo "----- Terraform Debug Log -----"
-          cat ./terraform.log
-        fi
-
-        exit ${PLAN_EXIT_CODE:-0}
-    - name: Comment on PR
-      id: add-pr-comment
-      if: always()
-      uses: mshick/add-pr-comment@b8f338c590a895d50bcbfa6c5859251edc8952fc # v2.8.2
+      id: terraform-plan
+      uses: eidp/actions-terraform/plan@83b371816d35bc96f139b5395172221dfb606db5
       with:
-        repo-token: ${{ steps.generate-app-token.outputs.token }}
-        message-id: ${{ inputs.directory }}
-        message: |
-          ## Terraform Plan for Directory: `${{ inputs.directory }}`
-          #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
-          #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
-          #### 🤖 **Terraform Validation:**  `${{ steps.validate.outcome }}`
-          #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
-
-          <details>
-            <summary><b>🔍 Show Terraform Plan</b></summary>
-
-            <blockquote>
-
-          ```tf
-          ${{ steps.plan.outputs.stdout }}
-          ```
-
-            </blockquote>
-          </details>
-        message-failure: |
-          ## Terraform Plan for Directory: `${{ inputs.directory }}`
-
-          **❌ Terraform execution failed. Please review the errors below and fix the issues before proceeding.**
-
-          #### 🖌 **Terraform Format and Style:** `${{ steps.fmt.outcome }}`
-          #### ⚙️ **Terraform Initialization:** `${{ steps.init.outcome }}`
-          #### 🤖 **Terraform Validation:**  `${{ steps.validate.outcome }}`
-          #### 📖 **Terraform Plan:** `${{ steps.plan.outcome }}`
-
-          ${{ steps.fmt.outcome == 'failure' && format('<details>
-            <summary><b>🔴 Format Errors</b></summary>
-
-            <blockquote>
-
-          The following files are not properly formatted. Run `terraform fmt -recursive` to fix formatting issues:
-
-          ```
-          {0}
-          ```
-
-            </blockquote>
-          </details>', steps.fmt.outputs.stdout) || '' }}
-
-          ${{ steps.init.outcome == 'failure' && format('<details>
-            <summary><b>🔴 Initialization Errors</b></summary>
-
-            <blockquote>
-
-          ```
-          {0}
-          ```
-
-            </blockquote>
-          </details>', steps.init.outputs.stderr) || '' }}
-
-          ${{ steps.validate.outcome == 'failure' && format('<details>
-            <summary><b>🔴 Validation Errors</b></summary>
-
-            <blockquote>
-
-          The Terraform configuration contains validation errors that must be fixed:
-
-          ```
-          {0}
-          ```
-
-            </blockquote>
-          </details>', steps.validate.outputs.stderr) || '' }}
-
-          ${{ steps.plan.outcome == 'failure' && steps.fmt.outcome != 'failure' && steps.init.outcome != 'failure' && steps.validate.outcome != 'failure' && format('<details>
-            <summary><b>🔴 Plan Errors</b></summary>
-
-            <blockquote>
-
-          ```tf
-          {0}
-          ```
-
-            </blockquote>
-          </details>', steps.plan.outputs.stderr) || '' }}
+        directory: ${{ inputs.directory }}
+        extra_args: ${{ inputs.extra_args }}
+        extra_init_args: ${{ inputs.extra_init_args }}
+        terraform_version: ${{ inputs.terraform_version }}
+        encrypted_artifact_name: ${{ inputs.encrypted_artifact_name }}
+        artifact_identity: ${{ secrets.ARTIFACT_IDENTITY }}
+        debug: ${{ inputs.debug }}
+        command_wrapper: ${{ inputs.command_wrapper }}
+        github_app_id: ${{ secrets.GITHUB_APP_ID }}
+        github_app_installation_id: ${{ secrets.GITHUB_APP_INSTALLATION_ID }}
+        github_app_pem_file: ${{ secrets.GITHUB_APP_PEM_FILE }}
