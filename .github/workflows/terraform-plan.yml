@@ -48,6 +48,14 @@ on:
         required: false
         type: boolean
         default: false
+      command_wrapper:
+        description: >
+          Optional command wrapper to prefix terraform commands with.
+          Useful for credential injection tools like 1Password CLI (op run --)
+          or AWS Vault (aws-vault exec profile --).
+        required: false
+        type: string
+        default: ""
     outputs:
       plan_outcome:
         description: |
@@ -103,7 +111,7 @@ jobs:
     steps:
     - name: Terraform Plan
       id: terraform-plan
-      uses: eidp/actions-terraform/plan@ec65488c5d4d6f6b484b153510f077bd177489c2
+      uses: eidp/actions-terraform/plan@83b371816d35bc96f139b5395172221dfb606db5
       with:
         directory: ${{ inputs.directory }}
         extra_args: ${{ inputs.extra_args }}
@@ -112,6 +120,7 @@ jobs:
         encrypted_artifact_name: ${{ inputs.encrypted_artifact_name }}
         artifact_identity: ${{ secrets.ARTIFACT_IDENTITY }}
         debug: ${{ inputs.debug }}
+        command_wrapper: ${{ inputs.command_wrapper }}
         github_app_id: ${{ secrets.GITHUB_APP_ID }}
         github_app_installation_id: ${{ secrets.GITHUB_APP_INSTALLATION_ID }}
         github_app_pem_file: ${{ secrets.GITHUB_APP_PEM_FILE }}

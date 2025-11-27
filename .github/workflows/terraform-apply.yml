@@ -55,6 +55,14 @@ on:
         required: false
         type: boolean
         default: false
+      command_wrapper:
+        description: >
+          Optional command wrapper to prefix terraform commands with.
+          Useful for credential injection tools like 1Password CLI (op run --)
+          or AWS Vault (aws-vault exec profile --).
+        required: false
+        type: string
+        default: ""
 
     secrets:
       AWS_ACCESS_KEY_ID:
@@ -107,7 +115,7 @@ jobs:
     steps:
     - name: Terraform Plan
       id: plan
-      uses: eidp/actions-terraform/plan-for-apply@8db532a213be5d7b09607b87c120f1848f4e63bd
+      uses: eidp/actions-terraform/plan-for-apply@83b371816d35bc96f139b5395172221dfb606db5
       with:
         directory: ${{ inputs.directory }}
         extra_args: ${{ inputs.extra_args }}
@@ -116,6 +124,7 @@ jobs:
         encrypted_artifact_name: ${{ inputs.encrypted_artifact_name }}
         artifact_identity: ${{ secrets.ARTIFACT_IDENTITY }}
         debug: ${{ inputs.debug }}
+        command_wrapper: ${{ inputs.command_wrapper }}
 
   apply:
     needs: [plan]
@@ -135,7 +144,7 @@ jobs:
     steps:
     - name: Terraform Apply
       id: apply
-      uses: eidp/actions-terraform/apply@8db532a213be5d7b09607b87c120f1848f4e63bd
+      uses: eidp/actions-terraform/apply@83b371816d35bc96f139b5395172221dfb606db5
       with:
         directory: ${{ inputs.directory }}
         extra_args: ${{ inputs.extra_args }}
@@ -144,4 +153,5 @@ jobs:
         encrypted_artifact_name: ${{ inputs.encrypted_artifact_name }}
         artifact_identity: ${{ secrets.ARTIFACT_IDENTITY }}
         debug: ${{ inputs.debug }}
+        command_wrapper: ${{ inputs.command_wrapper }}
         plan_artifact_name: ${{ needs.plan.outputs.plan_artifact_name }}
