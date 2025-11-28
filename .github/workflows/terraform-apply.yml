@@ -115,7 +115,7 @@ jobs:
     steps:
     - name: Terraform Plan
       id: plan
-      uses: eidp/actions-terraform/plan-for-apply@62fee086c8b7da7c23b2ceb04ce2c047d11f5dc2
+      uses: eidp/actions-terraform/plan-for-apply@a9e5ccf7cf0dabd583d76bacdbc10e438b291b81
       with:
         directory: ${{ inputs.directory }}
         extra_args: ${{ inputs.extra_args }}
@@ -144,7 +144,7 @@ jobs:
     steps:
     - name: Terraform Apply
       id: apply
-      uses: eidp/actions-terraform/apply@62fee086c8b7da7c23b2ceb04ce2c047d11f5dc2
+      uses: eidp/actions-terraform/apply@a9e5ccf7cf0dabd583d76bacdbc10e438b291b81
       with:
         directory: ${{ inputs.directory }}
         extra_args: ${{ inputs.extra_args }}
