@@ -111,7 +111,7 @@ jobs:
     steps:
     - name: Terraform Plan
       id: terraform-plan
-      uses: eidp/actions-terraform/plan@06206a533ea18dcb3b77a7c6c5bf9a0459cfaf4f
+      uses: eidp/actions-terraform/plan@62fee086c8b7da7c23b2ceb04ce2c047d11f5dc2
       with:
         directory: ${{ inputs.directory }}
         extra_args: ${{ inputs.extra_args }}
