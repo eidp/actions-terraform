@@ -13,7 +13,7 @@ jobs:
     uses: ./.github/workflows/terraform-plan.yml
     with:
       directory: ./test/terraform
-      terraform_version: "1.14.0"
+      terraform_version: "1.14.1"
       runs-on: kubernetes-runner
       debug: true
     secrets:
@@ -40,7 +40,7 @@ jobs:
     uses: ./.github/workflows/terraform-apply.yml
     with:
       directory: ./test/terraform
-      terraform_version: "1.14.0"
+      terraform_version: "1.14.1"
       environment: ''
       runs-on: kubernetes-runner
     secrets:
@@ -79,7 +79,7 @@ jobs:
       uses: ./plan
       with:
         directory: ./test/terraform
-        terraform_version: "1.14.0"
+        terraform_version: "1.14.1"
         debug: true
         github_app_id: "1552622"
         github_app_installation_id: "74918728"
@@ -115,7 +115,7 @@ jobs:
       uses: ./plan-for-apply
       with:
         directory: ./test/terraform
-        terraform_version: "1.14.0"
+        terraform_version: "1.14.1"
         debug: true
     - name: Verify plan artifact name output
       run: |
@@ -129,7 +129,7 @@ jobs:
       uses: ./apply
       with:
         directory: ./test/terraform
-        terraform_version: "1.14.0"
+        terraform_version: "1.14.1"
         plan_artifact_name: ${{ steps.plan.outputs.plan_artifact_name }}
         debug: true
 
