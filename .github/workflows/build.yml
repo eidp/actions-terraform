@@ -73,7 +73,7 @@ jobs:
       plan_output: ${{ steps.plan.outputs.plan_output }}
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - name: Test plan
       id: plan
       uses: ./plan
@@ -109,7 +109,7 @@ jobs:
       apply_outcome: ${{ steps.apply.outputs.apply_outcome }}
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - name: Test plan-for-apply
       id: plan
       uses: ./plan-for-apply
@@ -156,7 +156,7 @@ jobs:
     runs-on: kubernetes-runner
     steps:
     - name: Checkout Repo
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - name: Setup age
       uses: alessiodionisi/setup-age-action@82b9aea163ade7fe23441552a514cf666b214077 # v1.3.0
     - name: Prepare plaintext and age key pair
