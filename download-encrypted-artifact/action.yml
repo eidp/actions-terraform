@@ -41,7 +41,7 @@ runs:
     uses: alessiodionisi/setup-age-action@82b9aea163ade7fe23441552a514cf666b214077 # v1.3.0
 
   - name: Download encrypted archive artifact
-    uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+    uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8
     with:
       name: ${{ inputs.artifact_name }}
 
