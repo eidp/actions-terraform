@@ -158,7 +158,7 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     - name: Setup age
-      uses: alessiodionisi/setup-age-action@82b9aea163ade7fe23441552a514cf666b214077 # v1.3.0
+      uses: alessiodionisi/setup-age-action@7f6858cfdf652b106c2000cdc77835b9460e891c # v1.4.0
     - name: Prepare plaintext and age key pair
       id: age-keys
       run: |
