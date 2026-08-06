@@ -24,7 +24,7 @@ jobs:
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
 
   verify-test-plan-reusable-workflow:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     needs: test-plan-reusable-workflow
     steps:
     - name: verify-terraform-plan
@@ -51,7 +51,7 @@ jobs:
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
 
   verify-test-apply-reusable-workflow:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     needs: test-apply-reusable-workflow
     steps:
     - name: verify-terraform-apply
@@ -86,7 +86,7 @@ jobs:
         github_app_pem_file: ${{ secrets.GH_APP_PEM_FILE }}
 
   verify-test-plan:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     needs: test-plan
     steps:
     - name: Verify plan outcome
@@ -134,7 +134,7 @@ jobs:
         debug: true
 
   verify-plan-for-apply-and-apply:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     needs: test-plan-for-apply-and-apply
     steps:
     - name: Verify plan-for-apply outcome
@@ -153,7 +153,7 @@ jobs:
         echo "apply succeeded."
 
   test-encrypted-artifact-upload-download:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout Repo
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -196,7 +196,7 @@ jobs:
       run: diff -u plain.txt download/plain.txt
 
   check-workflow-status:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
