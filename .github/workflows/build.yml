@@ -14,7 +14,7 @@ jobs:
     with:
       directory: ./test/terraform
       terraform_version: "1.15.8"
-      runs-on: kubernetes-runner
+      runs-on: ubuntu-latest
       debug: true
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -24,7 +24,7 @@ jobs:
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
 
   verify-test-plan-reusable-workflow:
-    runs-on: kubernetes-runner
+    runs-on: ubuntu-latest
     needs: test-plan-reusable-workflow
     steps:
     - name: verify-terraform-plan
@@ -42,7 +42,7 @@ jobs:
       directory: ./test/terraform
       terraform_version: "1.15.8"
       environment: ''
-      runs-on: kubernetes-runner
+      runs-on: ubuntu-latest
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -51,7 +51,7 @@ jobs:
       GITHUB_APP_PEM_FILE: ${{ secrets.GH_APP_PEM_FILE }}
 
   verify-test-apply-reusable-workflow:
-    runs-on: kubernetes-runner
+    runs-on: ubuntu-latest
     needs: test-apply-reusable-workflow
     steps:
     - name: verify-terraform-apply
@@ -64,7 +64,7 @@ jobs:
         echo "${{ needs.test-apply-reusable-workflow.outputs.apply_output }}"
 
   test-plan:
-    runs-on: kubernetes-runner
+    runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -86,7 +86,7 @@ jobs:
         github_app_pem_file: ${{ secrets.GH_APP_PEM_FILE }}
 
   verify-test-plan:
-    runs-on: kubernetes-runner
+    runs-on: ubuntu-latest
     needs: test-plan
     steps:
     - name: Verify plan outcome
@@ -99,7 +99,7 @@ jobs:
         echo "${{ needs.test-plan.outputs.plan_output }}"
 
   test-plan-for-apply-and-apply:
-    runs-on: kubernetes-runner
+    runs-on: ubuntu-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -134,7 +134,7 @@ jobs:
         debug: true
 
   verify-plan-for-apply-and-apply:
-    runs-on: kubernetes-runner
+    runs-on: ubuntu-latest
     needs: test-plan-for-apply-and-apply
     steps:
     - name: Verify plan-for-apply outcome
@@ -153,7 +153,7 @@ jobs:
         echo "apply succeeded."
 
   test-encrypted-artifact-upload-download:
-    runs-on: kubernetes-runner
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout Repo
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -196,7 +196,7 @@ jobs:
       run: diff -u plain.txt download/plain.txt
 
   check-workflow-status:
-    runs-on: kubernetes-runner
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
