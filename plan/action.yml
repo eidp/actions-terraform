@@ -106,7 +106,7 @@ runs:
 
   - name: Download encrypted artifact
     if: ${{ inputs.encrypted_artifact_name != '' }}
-    uses: eidp/actions-terraform/download-encrypted-artifact@a9e5ccf7cf0dabd583d76bacdbc10e438b291b81 # v1.3.0
+    uses: eidp/actions-terraform/download-encrypted-artifact@7cfef32e3faed8a73e97a96c1c1142f54873066c # v1.4.0
     with:
       artifact_name: ${{ inputs.encrypted_artifact_name }}
       identity: ${{ inputs.artifact_identity }}
